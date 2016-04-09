@@ -58,11 +58,26 @@ public class CountDownService extends Service {
                     second = "00";
                     //发送更新倒计时广播给Activity
                     sendUptateTimerReceiver();
+                    sendFinishTimerReceiver();
                 }
             };
             timer.start();
         }
 
+        /**
+         * 倒计时完成时发送广播
+         * 所有需要接收计时完成的广播均可注册广播，监听R.string.countFinishAction
+         */
+        private void sendFinishTimerReceiver() {
+            Intent intent = new Intent();
+            intent.setAction(getResources().getString(R.string.countFinishAction));
+            sendBroadcast(intent);
+        }
+
+        /**
+         * 倒计时广播，每计时1s，发送广播
+         * 所有需要接收计时时时更新数据的均可注册广播，监听R.string.countDownAction
+         */
         private void sendUptateTimerReceiver() {
             Intent intent = new Intent();
             intent.putExtra(getResources().getString(R.string.countMinute),minute);

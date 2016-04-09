@@ -5,5 +5,7 @@
     <string name="countMinute">countMinute</string>
     <string name="countSecond">countSecond</string>
 
-    <string name="countDownAction">com.iwin.istudy.service.CountDownService</string>
+    <!--广播Actions-->
+    <string name="countDownAction">com.iwin.istudy.service.CountDownService.countDown</string>
+    <string name="countFinishAction">com.iwin.istudy.service.CountDownService.countFinish</string>
 </resources>
