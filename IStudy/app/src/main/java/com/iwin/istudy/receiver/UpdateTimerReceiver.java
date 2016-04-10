@@ -3,8 +3,6 @@ package com.iwin.istudy.receiver;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
-import android.widget.TextView;
 
 import com.iwin.istudy.R;
 import com.iwin.istudy.activity.MainActivity;
@@ -24,6 +22,6 @@ public class UpdateTimerReceiver extends BroadcastReceiver {
         String second = intent.getStringExtra(context.getString(R.string.countSecond));
         ((MainActivity) context).tvMinute.setText(minute);
         ((MainActivity) context).tvSecond.setText(second);
-
+        ((MainActivity) context).mDesktopLayout.setCountTxt("   "+minute+":"+second);
     }
 }
