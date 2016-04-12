@@ -20,8 +20,8 @@ public class NotifyUserReceiver extends BroadcastReceiver {
         if (isNotifyOpenApp){
             //显示通知
             CharSequence appName = intent.getCharSequenceExtra(context.getString(R.string.app_name_of_open));
-            ((MainActivity) context).mDesktopLayout.setTvNotifyVisiable(View.VISIBLE);
-            ((MainActivity) context).mDesktopLayout.setTvNotifyText(appName);
+            ((MainActivity) context).setDesklayoutNotifyVisiable(View.VISIBLE);
+            ((MainActivity) context).setDesklayoutNotifyText(appName);
             Log.d(TAG,"appName:"+appName);
         }
     }

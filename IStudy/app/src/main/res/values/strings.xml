@@ -19,4 +19,14 @@
     <string name="app_name_of_open">appNameOfOpen</string>
 
     <string name="is_open_a_app">isOpenAAPP</string>
+
+
+    <!--控件名称-->
+    <string name="dialog_wv_set_count_time_title">学习计划时间选择</string>
+    <string name="ok">确定</string>
+    <string name="cancel">取消</string>
+    <string name="back">返回</string>
+    <string name="tv_hour">时</string>
+    <string name="tv_minute">分</string>
+    <string name="tv_second">秒</string>
 </resources>

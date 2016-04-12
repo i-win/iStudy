@@ -24,10 +24,10 @@ public class UpdateTimerReceiver extends BroadcastReceiver {
         String hour = intent.getStringExtra(context.getString(R.string.countHour));
         String minute = intent.getStringExtra(context.getString(R.string.countMinute));
         String second = intent.getStringExtra(context.getString(R.string.countSecond));
-        ((MainActivity) context).tvHour.setText(hour);
-        ((MainActivity) context).tvMinute.setText(minute);
-        ((MainActivity) context).tvSecond.setText(second);
-        ((MainActivity) context).mDesktopLayout.setCountTxt(hour + ":" + minute + ":" + second);
-
+        ((MainActivity) context).setTvHour(hour);
+        ((MainActivity) context).setTvMinute(minute);
+        ((MainActivity) context).setTvSecond(second);
+        ((MainActivity) context).setSetedCountTime(true);
+        ((MainActivity) context).setDesklayoutCountText(hour + ":" + minute + ":" + second);
     }
 }

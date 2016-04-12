@@ -1,8 +1,8 @@
 package com.iwin.istudy.activity;
 
-import android.app.TimePickerDialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -10,6 +10,7 @@ import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -20,34 +21,31 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.iwin.istudy.R;
+import com.iwin.istudy.engine.TimerManager;
+import com.iwin.istudy.receiver.CountDownFinishReceiver;
 import com.iwin.istudy.receiver.NotifyUserReceiver;
 import com.iwin.istudy.receiver.UpdateTimerReceiver;
 import com.iwin.istudy.service.CountDownService;
-import com.iwin.istudy.ui.Desklayout;
 import com.iwin.istudy.service.MonitorAppsService;
+import com.iwin.istudy.ui.Desklayout;
+import com.iwin.istudy.ui.WheelView;
 
 public class MainActivity extends BaseActivity {
 
-    public TextView tvHour;
-    public TextView tvMinute;
-    public TextView tvSecond;
-    public int hour_set;
-    public int minute_set;
-    public int second_set;
-    private Button btnPlan;
-    private Button btnStartCount;
-    private CountDownService.CountDownBinder countBinder;
     private UpdateTimerReceiver updateTimerReceiver;
     private NotifyUserReceiver notifyUserReceiver;
+    private CountDownFinishReceiver countFinishReceiver;
+    private CountDownService.CountDownBinder countBinder;
 
     private WindowManager mWindowManager;
     private WindowManager.LayoutParams mLayout;
-    public Desklayout mDesktopLayout;
+    private Desklayout mDesktopLayout;
+    private boolean isSetedCountTime = false;
     private long startTime;
     // 声明屏幕的宽高
     float x, y;
@@ -61,7 +59,47 @@ public class MainActivity extends BaseActivity {
         initView();
 
         registerCountDownReceiver();
+        registerCountFinishReceiver();
         registerNotifyUserReceiver();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(updateTimerReceiver);
+    }
+
+    private TextView tvHour;
+    private TextView tvMinute;
+    private TextView tvSecond;
+    private LinearLayout linlayoutCountTime;
+    private Button btnStartCount;
+
+    private void initView() {
+        tvHour = (TextView) findViewById(R.id.tv_hour);
+        tvMinute = (TextView) findViewById(R.id.tv_minute);
+        tvSecond = (TextView) findViewById(R.id.tv_second);
+
+        linlayoutCountTime = (LinearLayout) findViewById(R.id.linlayout_count_time);
+        linlayoutCountTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!isSetedCountTime){
+                    setCountTime();
+                }
+            }
+        });
+
+        btnStartCount = (Button) findViewById(R.id.btn_start_count);
+        btnStartCount.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                startCountService();
+                stratMonitorService();
+
+            }
+        });
     }
 
     /**
@@ -82,46 +120,46 @@ public class MainActivity extends BaseActivity {
         this.registerReceiver(updateTimerReceiver, filter);
     }
 
-    private void initView() {
-        tvHour = (TextView) findViewById(R.id.tv_hour);
-        tvMinute = (TextView) findViewById(R.id.tv_minute);
-        tvSecond = (TextView) findViewById(R.id.tv_second);
-        btnPlan = (Button) findViewById(R.id.btn_plan);
-        btnPlan.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int hour = 0;
-                int minute = 0;
-                TimePickerDialog timePickerDialog = new TimePickerDialog(MainActivity.this, new TimePickerDialog.OnTimeSetListener() {
+    /**
+     * 注册倒计时完成广播
+     */
+    private void registerCountFinishReceiver() {
+        countFinishReceiver = new CountDownFinishReceiver();
+        IntentFilter filter = new IntentFilter(this.getString(R.string.countFinishAction));
+        this.registerReceiver(countFinishReceiver,filter);
+    }
+
+    /**
+     * 设置倒计时时间
+     */
+    private void setCountTime() {
+        View wheelView = LayoutInflater.from(this).inflate(R.layout.dialog_wheel_view,null);
+        final WheelView wvHour = (WheelView) wheelView.findViewById(R.id.wv_hour);
+        final WheelView wvMinute = (WheelView) wheelView.findViewById(R.id.wv_minute);
+        final WheelView wvSecond = (WheelView) wheelView.findViewById(R.id.wv_second);
+
+        TimerManager timerManager = new TimerManager();
+        wvHour.setItems(timerManager.getAllHour());
+        wvMinute.setItems(timerManager.getAllMinute());
+        wvSecond.setItems(timerManager.getAllSecond());
+        //初始时间选择00:00:00
+        wvHour.setSelection(0);
+        wvMinute.setSelection(0);
+        wvSecond.setSelection(0);
+
+
+        new AlertDialog.Builder(this)
+                .setTitle(this.getString(R.string.dialog_wv_set_count_time_title))
+                .setView(wheelView)
+                .setPositiveButton(this.getString(R.string.ok), new DialogInterface.OnClickListener() {
                     @Override
-                    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-                        Log.i("info","!!!"+hourOfDay+" "+minute);
-                        hour_set = hourOfDay;
-                        minute_set = minute;
-                        second_set = 0;
-
-/*                        tvHour.setText(hour_set);
-                        tvMinute.setText(minute_set);
-                        tvSecond.setText(second_set);*/
-
+                    public void onClick(DialogInterface dialog, int which) {
+                        tvHour.setText(wvHour.getSelectedItem());
+                        tvMinute.setText(wvMinute.getSelectedItem());
+                        tvSecond.setText(wvSecond.getSelectedItem());
                     }
-                }, hour, minute, true);
-                timePickerDialog.setTitle("计划学习时间选择");
-                timePickerDialog.show();
-
-            }
-        });
-        btnStartCount = (Button) findViewById(R.id.btn_start_count);
-
-        btnStartCount.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                startCountService();
-                stratMonitorService();
-
-            }
-        });
+                })
+                .show();
     }
 
     /**
@@ -137,10 +175,9 @@ public class MainActivity extends BaseActivity {
      */
     private void startCountService() {
         Intent intent = new Intent(MainActivity.this, CountDownService.class);
-        intent.putExtra(this.getString(R.string.countHour), Long.parseLong(String.valueOf(hour_set)));
-        intent.putExtra(this.getString(R.string.countMinute), Long.parseLong(String.valueOf(minute_set)));
-        intent.putExtra(this.getString(R.string.countSecond), Long.parseLong(String.valueOf(second_set)));
-        Log.i("info", "!!!" + Long.parseLong(String.valueOf(hour_set)) + " " + Long.parseLong(String.valueOf(minute_set)) + " " + Long.parseLong(String.valueOf(second_set)));
+        intent.putExtra(this.getString(R.string.countHour), Long.parseLong(tvHour.getText().toString()));
+        intent.putExtra(this.getString(R.string.countMinute), Long.parseLong(tvMinute.getText().toString()));
+        intent.putExtra(this.getString(R.string.countSecond), Long.parseLong(tvSecond.getText().toString()));
         ServiceConnection connection = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
@@ -161,12 +198,6 @@ public class MainActivity extends BaseActivity {
         //启动服务
         bindService(intent, connection, BIND_AUTO_CREATE);
 
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        unregisterReceiver(updateTimerReceiver);
     }
 
     /**
@@ -299,5 +330,77 @@ public class MainActivity extends BaseActivity {
         toast.setView(toast_view);
         toast.setGravity(Gravity.CENTER, Gravity.CENTER, Gravity.CENTER);
         toast.show();
+    }
+
+    /**
+     * 设置TextView 小时的值
+     * @param text
+     */
+    public void setTvHour(String text){
+        if (tvHour != null){
+            tvHour.setText(text);
+        }
+    }
+
+    /**
+     * 设置TextView 分钟的值
+     * @param text
+     */
+    public void setTvMinute(String text) {
+        if (tvMinute != null){
+            tvMinute.setText(text);
+        }
+    }
+
+    /**
+     * 设置TextView 秒的值
+     * @param text
+     */
+
+    public void setTvSecond(String text) {
+        if (tvSecond != null){
+            tvSecond.setText(text);
+        }
+    }
+
+    /**
+     * 设置时间选择的使能
+     * @param set
+     */
+    public void setSetedCountTime(boolean set) {
+        isSetedCountTime = set;
+    }
+
+    /**
+     * 设置悬浮窗倒计时的时间
+     * @see Desklayout#setCountTxt(String)
+     * @param text
+     */
+    public void setDesklayoutCountText(String text){
+        if (mDesktopLayout != null){
+            mDesktopLayout.setCountTxt(text);
+        }
+    }
+
+    /**
+     * 设置悬浮窗弹出窗的可见性
+     * @see Desklayout#setTvNotifyVisiable(int)
+     * @param vis
+     */
+    public void setDesklayoutNotifyVisiable(int vis){
+        if (mDesktopLayout != null){
+            mDesktopLayout.setTvNotifyVisiable(vis);
+        }
+    }
+
+    /**
+     * 设置悬浮窗的弹出窗的内容
+     * @see Desklayout#setTvNotifyText(CharSequence)
+     * @param text
+     */
+    public void setDesklayoutNotifyText(CharSequence text){
+        if (mDesktopLayout != null){
+            mDesktopLayout.setTvNotifyText(text);
+        }
     }
 }
