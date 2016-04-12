@@ -6,6 +6,6 @@
         android:textSize="20dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="   洗澡   "
+        android:text="    洗澡    "
         android:background="#fbfbfdfd"/>
 </LinearLayout>

@@ -1,7 +1,8 @@
 <resources>
     <string name="app_name">IStudy</string>
 
-    <!-- 倒计时分钟和秒数-->
+    <!-- 倒计时小时、分钟和秒数-->
+    <string name="countHour">countHour</string>
     <string name="countMinute">countMinute</string>
     <string name="countSecond">countSecond</string>
 

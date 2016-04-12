@@ -14,9 +14,25 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical">
+        <Button
+            android:id="@+id/btn_plan"
+            android:text="学习计划时间选择"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/tv_hour"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="00"
+                android:textSize="56sp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=":"
+                android:textSize="56sp"/>
             <TextView
                 android:id="@+id/tv_minute"
                 android:layout_width="wrap_content"
@@ -32,7 +48,7 @@
                 android:id="@+id/tv_second"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="60"
+                android:text="00"
                 android:textSize="56sp"/>
         </LinearLayout>
         <Button

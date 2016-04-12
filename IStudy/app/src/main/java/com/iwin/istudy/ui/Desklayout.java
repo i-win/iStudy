@@ -34,8 +34,10 @@ public class Desklayout extends LinearLayout {
     private PagerTitleStrip tab;
     private List<String> titlelist;
     private TextView count_txt;
+
     public Desklayout(final Context context) {
         super(context);
+
         setOrientation(LinearLayout.VERTICAL);// 水平排列
         //设置宽高
         this.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
@@ -54,6 +56,7 @@ public class Desklayout extends LinearLayout {
         flipper.setAutoStart(true);
         flipper.setFlipInterval(70);//自动切换
         flipper.startFlipping();
+
         viewList = new ArrayList<>();
         View view1 = View.inflate(context, R.layout.pager_view1, null);//讲layout布局文件装换成view对象
         View view2 = View.inflate(context, R.layout.pager_view2, null);
@@ -74,7 +77,6 @@ public class Desklayout extends LinearLayout {
         titlelist.add("");
 
         count_txt = (TextView)view1.findViewById(R.id.count_txt);
-
 
         view2.setOnClickListener(new OnClickListener() {
             @Override
@@ -153,7 +155,6 @@ public class Desklayout extends LinearLayout {
                     @Override
                     public void onTick(long millisUntilFinished) {
                     }
-
                     @Override
                     public void onFinish() {
                         for (int i = 0; i < resId.length; i++) {
@@ -173,6 +174,7 @@ public class Desklayout extends LinearLayout {
                 }.start();
             }
         });
+
         //为PagerTabStrip设置一些属性
         tab = (PagerTitleStrip) view.findViewById(R.id.title);
         tab.setTextColor(Color.BLACK);
@@ -184,8 +186,6 @@ public class Desklayout extends LinearLayout {
         //viewPager加载适配器
         pager.setAdapter(adapter);
         this.addView(view);
-
-
     }
 
     private ImageView getImageView(int resId) {

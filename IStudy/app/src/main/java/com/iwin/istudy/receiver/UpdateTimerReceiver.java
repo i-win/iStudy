@@ -18,10 +18,12 @@ public class UpdateTimerReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         //context:注册该广播的context
         //intent:发送该广播携带的intent
+        String hour = intent.getStringExtra(context.getString(R.string.countHour));
         String minute = intent.getStringExtra(context.getString(R.string.countMinute));
         String second = intent.getStringExtra(context.getString(R.string.countSecond));
+        ((MainActivity) context).tvHour.setText(hour);
         ((MainActivity) context).tvMinute.setText(minute);
         ((MainActivity) context).tvSecond.setText(second);
-        ((MainActivity) context).mDesktopLayout.setCountTxt("   "+minute+":"+second);
+        ((MainActivity) context).mDesktopLayout.setCountTxt(hour+":"+minute+":"+second);
     }
 }

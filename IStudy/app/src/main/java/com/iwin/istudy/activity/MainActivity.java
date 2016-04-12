@@ -1,5 +1,6 @@
 package com.iwin.istudy.activity;
 
+import android.app.TimePickerDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -12,6 +13,7 @@ import android.os.IBinder;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -19,6 +21,8 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.TimePicker;
+import android.widget.Toast;
 
 import com.iwin.istudy.R;
 import com.iwin.istudy.receiver.UpdateTimerReceiver;
@@ -26,9 +30,13 @@ import com.iwin.istudy.service.CountDownService;
 import com.iwin.istudy.ui.Desklayout;
 
 public class MainActivity extends BaseActivity {
-
+    public TextView tvHour;
     public TextView tvMinute;
     public TextView tvSecond;
+    public int hour_set;
+    public int minute_set;
+    public int second_set;
+    private Button btnPlan;
     private Button btnStartCount;
     private CountDownService.CountDownBinder countBinder;
     private UpdateTimerReceiver updateTimerReceiver;
@@ -62,25 +70,49 @@ public class MainActivity extends BaseActivity {
     }
 
     private void initView() {
+        tvHour = (TextView) findViewById(R.id.tv_hour);
         tvMinute = (TextView) findViewById(R.id.tv_minute);
         tvSecond = (TextView) findViewById(R.id.tv_second);
-        btnStartCount = (Button) findViewById(R.id.btn_start_count);
+        btnPlan = (Button) findViewById(R.id.btn_plan);
+        btnPlan.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int hour = 0;
+                int minute = 0;
+                TimePickerDialog timePickerDialog = new TimePickerDialog(MainActivity.this, new TimePickerDialog.OnTimeSetListener() {
+                    @Override
+                    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                        Log.i("info","!!!"+hourOfDay+" "+minute);
+                        hour_set = hourOfDay;
+                        minute_set = minute;
+                        second_set = 0;
 
+/*                        tvHour.setText(hour_set);
+                        tvMinute.setText(minute_set);
+                        tvSecond.setText(second_set);*/
+
+                    }
+                }, hour, minute, true);
+                timePickerDialog.setTitle("计划学习时间选择");
+                timePickerDialog.show();
+
+            }
+        });
+        btnStartCount = (Button) findViewById(R.id.btn_start_count);
         btnStartCount.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 startCountService();
-
             }
         });
     }
 
     private void startCountService() {
-        Intent intent = new Intent(MainActivity.this,CountDownService.class);
-        intent.putExtra(this.getString(R.string.countMinute),Long.parseLong(tvMinute.getText().toString()));
-        intent.putExtra(this.getString(R.string.countSecond),Long.parseLong(tvSecond.getText().toString()));
-
+        Intent intent = new Intent(MainActivity.this, CountDownService.class);
+        intent.putExtra(this.getString(R.string.countHour), Long.parseLong(String.valueOf(hour_set)));
+        intent.putExtra(this.getString(R.string.countMinute), Long.parseLong(String.valueOf(minute_set)));
+        intent.putExtra(this.getString(R.string.countSecond), Long.parseLong(String.valueOf(second_set)));
+        Log.i("info", "!!!" + Long.parseLong(String.valueOf(hour_set)) + " " + Long.parseLong(String.valueOf(minute_set)) + " " + Long.parseLong(String.valueOf(second_set)));
         ServiceConnection connection = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
@@ -91,7 +123,6 @@ public class MainActivity extends BaseActivity {
                 showDesk();
                 countBinder = (CountDownService.CountDownBinder) service;
                 countBinder.startCount();
-
             }
 
             @Override
@@ -136,6 +167,7 @@ public class MainActivity extends BaseActivity {
                         if (end < 300) {
                             Log.i("info", "!!!");
 //                            closeDesk();
+                            showToast();
                         }
                         startTime = System.currentTimeMillis();
                         break;
@@ -230,5 +262,14 @@ public class MainActivity extends BaseActivity {
             return true;
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    public void showToast(){
+        LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
+        View toast_view = inflater.inflate(R.layout.toast_layout,null);
+        Toast toast = new Toast(MainActivity.this);
+        toast.setView(toast_view);
+        toast.setGravity(Gravity.CENTER, Gravity.CENTER, Gravity.CENTER);
+        toast.show();
     }
 }
