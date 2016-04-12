@@ -25,11 +25,14 @@ import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.iwin.istudy.R;
+import com.iwin.istudy.receiver.NotifyUserReceiver;
 import com.iwin.istudy.receiver.UpdateTimerReceiver;
 import com.iwin.istudy.service.CountDownService;
 import com.iwin.istudy.ui.Desklayout;
+import com.iwin.istudy.service.MonitorAppsService;
 
 public class MainActivity extends BaseActivity {
+
     public TextView tvHour;
     public TextView tvMinute;
     public TextView tvSecond;
@@ -40,6 +43,7 @@ public class MainActivity extends BaseActivity {
     private Button btnStartCount;
     private CountDownService.CountDownBinder countBinder;
     private UpdateTimerReceiver updateTimerReceiver;
+    private NotifyUserReceiver notifyUserReceiver;
 
     private WindowManager mWindowManager;
     private WindowManager.LayoutParams mLayout;
@@ -54,15 +58,24 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         initView();
 
-        //注册监听倒计时更新的广播
         registerCountDownReceiver();
-
-
+        registerNotifyUserReceiver();
     }
 
+    /**
+     * 注册监听用户打开的APP信息广播
+     */
+    private void registerNotifyUserReceiver() {
+        notifyUserReceiver = new NotifyUserReceiver();
+        IntentFilter filter = new IntentFilter(this.getString(R.string.notify_user_action));
+        this.registerReceiver(notifyUserReceiver,filter);
+    }
+
+    /**
+     * 注册监听倒计时更新的广播
+     */
     private void registerCountDownReceiver() {
         updateTimerReceiver = new UpdateTimerReceiver();
         IntentFilter filter = new IntentFilter(this.getString(R.string.countDownAction));
@@ -99,14 +112,29 @@ public class MainActivity extends BaseActivity {
             }
         });
         btnStartCount = (Button) findViewById(R.id.btn_start_count);
+
         btnStartCount.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 startCountService();
+                stratMonitorService();
+
             }
         });
     }
 
+    /**
+     * 后台监测正在运行的程序服务
+     */
+    private void stratMonitorService() {
+        Intent intent = new Intent(MainActivity.this,MonitorAppsService.class);
+        startService(intent);
+    }
+
+    /**
+     * 倒计时后台服务
+     */
     private void startCountService() {
         Intent intent = new Intent(MainActivity.this, CountDownService.class);
         intent.putExtra(this.getString(R.string.countHour), Long.parseLong(String.valueOf(hour_set)));

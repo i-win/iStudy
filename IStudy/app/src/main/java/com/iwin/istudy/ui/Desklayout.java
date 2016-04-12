@@ -34,6 +34,8 @@ public class Desklayout extends LinearLayout {
     private PagerTitleStrip tab;
     private List<String> titlelist;
     private TextView count_txt;
+    private TextView tvNotify;
+
 
     public Desklayout(final Context context) {
         super(context);
@@ -42,6 +44,14 @@ public class Desklayout extends LinearLayout {
         //设置宽高
         this.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
         View view = LayoutInflater.from(context).inflate(R.layout.windows_layout, null);
+
+        tvNotify = (TextView) view.findViewById(R.id.tv_notify);
+        tvNotify.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setTvNotifyVisiable(View.INVISIBLE);
+            }
+        });
         flipper = (ViewFlipper) view.findViewById(R.id.flipper);
         //动态导入的方式为ViewFlipper加入子View
         resId = new int[]{R.drawable.clean_a1, R.drawable.clean_a1, R.drawable.clean_a1,
@@ -77,6 +87,7 @@ public class Desklayout extends LinearLayout {
         titlelist.add("");
 
         count_txt = (TextView)view1.findViewById(R.id.count_txt);
+
 
         view2.setOnClickListener(new OnClickListener() {
             @Override
@@ -195,8 +206,27 @@ public class Desklayout extends LinearLayout {
         return image;
     }
 
+    /**
+     * 设置宠物狗的倒计时时间
+     * @param text 显示的时间
+     */
     public void setCountTxt(String text){
         count_txt.setText(text);
     }
 
+    /**
+     * 设置通知气泡的内容
+     * @param text 要通知的内容
+     */
+    public void setTvNotifyText(CharSequence text){
+        tvNotify.setText(text);
+    }
+
+    /**
+     * 设置通知气泡的显示
+     * @param visiable {@value VISIBLE,GONE,INVISIBLE}
+     */
+    public void setTvNotifyVisiable(int visiable){
+        tvNotify.setVisibility(visiable);
+    }
 }

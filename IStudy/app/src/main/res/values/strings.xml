@@ -9,4 +9,14 @@
     <!--广播Actions-->
     <string name="countDownAction">com.iwin.istudy.service.CountDownService.countDown</string>
     <string name="countFinishAction">com.iwin.istudy.service.CountDownService.countFinish</string>
+    <string name="notify_user_action">com.iwin.istudy.receiver.MonitorAppsReceiver</string>
+    <string name="open_a_app">com.iwin.istudy.service.MonitorAppsService.openApp</string>
+    <string name="close_a_app">com.iwin.istudy.service.MonitorAppsService.closeApp</string>
+
+    <!--监测打开或关闭的app-->
+    <string name="app_info">AppInfo</string>
+    <string name="app_packageName_of_open">appPackageNameOfOpen</string>
+    <string name="app_name_of_open">appNameOfOpen</string>
+
+    <string name="is_open_a_app">isOpenAAPP</string>
 </resources>
