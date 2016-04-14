@@ -6,11 +6,13 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AlertDialog;
+import android.text.Layout;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -21,7 +23,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -74,7 +78,9 @@ public class MainActivity extends BaseActivity {
     private TextView tvSecond;
     private LinearLayout linlayoutCountTime;
     private Button btnStartCount;
-
+    private ImageButton btnChangeColor;
+    private PopupWindow popupwindow;
+    private View layout_main;
     private void initView() {
         tvHour = (TextView) findViewById(R.id.tv_hour);
         tvMinute = (TextView) findViewById(R.id.tv_minute);
@@ -94,12 +100,65 @@ public class MainActivity extends BaseActivity {
         btnStartCount.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 startCountService();
                 stratMonitorService();
 
             }
         });
+
+        btnChangeColor = (ImageButton)findViewById(R.id.btn_change_color);
+        btnChangeColor.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (popupwindow != null&&popupwindow.isShowing()) {
+                    popupwindow.dismiss();
+                    return;
+                } else {
+                    initmPopupWindowView();
+                    popupwindow.showAsDropDown(v, 0, 5);
+                }
+            }
+        });
+    }
+
+    /**下拉框属性*/
+    public void initmPopupWindowView() {
+        // // 获取自定义布局文件pop.xml的视图
+        View customView = getLayoutInflater().inflate(R.layout.popcolor_item, null, false);
+        // 创建PopupWindow实例,200,150分别是宽度和高度
+        popupwindow = new PopupWindow(customView, 150, 200);
+        // 设置动画效果 [R.style.AnimationFade 是自己事先定义好的]
+        popupwindow.setAnimationStyle(R.style.AnimationFade);
+        // 自定义view添加触摸事件
+        customView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (popupwindow != null && popupwindow.isShowing()) {
+                    popupwindow.dismiss();
+                    popupwindow = null;
+                }
+                return false;
+            }
+        });
+        /** 在这里可以实现自定义视图的功能 */
+        layout_main = findViewById(R.id.layout_main);
+        Button btnColorRed = (Button)customView.findViewById(R.id.btn_color_red);
+        btnColorRed.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                layout_main.setBackgroundColor(Color.RED);
+            }
+        });
+        Button btnColorYelllow = (Button)customView.findViewById(R.id.btn_color_yellow);
+        btnColorYelllow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                layout_main.setBackgroundColor(Color.YELLOW);
+            }
+        });
+/*        Button btton2 = (Button) customView.findViewById(R.id.button2);
+        Button btton3 = (Button) customView.findViewById(R.id.button3);
+        Button btton4 = (Button) customView.findViewById(R.id.button4);*/
     }
 
     /**
@@ -226,7 +285,6 @@ public class MainActivity extends BaseActivity {
                         if (end < 300) {
                             Log.i("info", "!!!");
 //                            closeDesk();
-                            showToast();
                         }
                         startTime = System.currentTimeMillis();
                         break;
@@ -323,14 +381,6 @@ public class MainActivity extends BaseActivity {
         return super.onKeyDown(keyCode, event);
     }
 
-    public void showToast(){
-        LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
-        View toast_view = inflater.inflate(R.layout.toast_layout,null);
-        Toast toast = new Toast(MainActivity.this);
-        toast.setView(toast_view);
-        toast.setGravity(Gravity.CENTER, Gravity.CENTER, Gravity.CENTER);
-        toast.show();
-    }
 
     /**
      * 设置TextView 小时的值
