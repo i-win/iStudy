@@ -29,4 +29,12 @@
     <string name="tv_hour">时</string>
     <string name="tv_minute">分</string>
     <string name="tv_second">秒</string>
+    <string name="go_open">去开启</string>
+    
+    <string name="no_permission">权限不足</string>
+    <string name="no_permission_advice">需要为该App开启辅助功能才能正常运行</string>
+    <string name="click_start">clickStrar</string>
+
+
+    <string name="strat_monitor_service">stratMonitorService</string>
 </resources>

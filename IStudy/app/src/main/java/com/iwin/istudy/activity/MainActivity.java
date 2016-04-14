@@ -1,15 +1,13 @@
 package com.iwin.istudy.activity;
 
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.os.Bundle;
-import android.os.IBinder;
+import android.provider.Settings;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.Gravity;
@@ -40,12 +38,12 @@ public class MainActivity extends BaseActivity {
     private UpdateTimerReceiver updateTimerReceiver;
     private NotifyUserReceiver notifyUserReceiver;
     private CountDownFinishReceiver countFinishReceiver;
-    private CountDownService.CountDownBinder countBinder;
 
     private WindowManager mWindowManager;
     private WindowManager.LayoutParams mLayout;
     private Desklayout mDesktopLayout;
     private boolean isSetedCountTime = false;
+    private boolean isClickStart = false;
     private long startTime;
     // 声明屏幕的宽高
     float x, y;
@@ -67,6 +65,8 @@ public class MainActivity extends BaseActivity {
     protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(updateTimerReceiver);
+        unregisterReceiver(countFinishReceiver);
+        unregisterReceiver(notifyUserReceiver);
     }
 
     private TextView tvHour;
@@ -94,11 +94,10 @@ public class MainActivity extends BaseActivity {
         btnStartCount.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                startCountService();
                 stratMonitorService();
-
+                countServiceEnable();
             }
+
         });
     }
 
@@ -163,41 +162,70 @@ public class MainActivity extends BaseActivity {
     }
 
     /**
-     * 后台监测正在运行的程序服务
+     * 启动后台监测正在运行的程序服务
      */
-    private void stratMonitorService() {
-        Intent intent = new Intent(MainActivity.this,MonitorAppsService.class);
-        startService(intent);
+    public void stratMonitorService() {
+        if (MonitorAppsService.isAccessibilitySettingsOn(this)) {
+            MonitorAppsService.getInstance();
+        } else {
+            showNoPermission();
+        }
+    }
+
+    private AlertDialog.Builder noPermissionDialog = null;
+
+    /**
+     * 提示并引导用户开启辅助权限
+     */
+    private void showNoPermission() {
+        if (noPermissionDialog == null){
+            noPermissionDialog = new AlertDialog.Builder(this)
+                    .setTitle(this.getString(R.string.no_permission))
+                    .setMessage(this.getString(R.string.no_permission_advice))
+                    .setPositiveButton(this.getString(R.string.go_open), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(intent);
+                        }
+                    })
+                    .setNegativeButton(this.getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                        }
+                    });
+        }
+        noPermissionDialog.show();
     }
 
     /**
-     * 倒计时后台服务
+     * 启动倒计时后台服务
      */
-    private void startCountService() {
+    public void startCountService() {
         Intent intent = new Intent(MainActivity.this, CountDownService.class);
         intent.putExtra(this.getString(R.string.countHour), Long.parseLong(tvHour.getText().toString()));
         intent.putExtra(this.getString(R.string.countMinute), Long.parseLong(tvMinute.getText().toString()));
         intent.putExtra(this.getString(R.string.countSecond), Long.parseLong(tvSecond.getText().toString()));
-        ServiceConnection connection = new ServiceConnection() {
-            @Override
-            public void onServiceConnected(ComponentName name, IBinder service) {
-                Log.d("count", "更新");
-                //服务连接成功后启动倒计时
-                createWindowManager();
-                createDesktopLayout();
-                showDesk();
-                countBinder = (CountDownService.CountDownBinder) service;
-                countBinder.startCount();
-            }
-
-            @Override
-            public void onServiceDisconnected(ComponentName name) {
-
-            }
-        };
         //启动服务
-        bindService(intent, connection, BIND_AUTO_CREATE);
+        startService(intent);
+        if (mDesktopLayout == null){
+            createWindowManager();
+            createDesktopLayout();
+            showDesk();
+        }
+    }
 
+    /**
+     * 先判断是否开启辅助权限，若已开启，则直接启动倒计时服务，若还没开启，等待开启完后再开启倒计时服务
+     */
+    private void countServiceEnable() {
+        if (MonitorAppsService.isAccessibilitySettingsOn(MainActivity.this)){
+            startCountService();
+        } else {
+            setClickStart(true);
+        }
     }
 
     /**
@@ -371,6 +399,10 @@ public class MainActivity extends BaseActivity {
         isSetedCountTime = set;
     }
 
+    public boolean getIsSetedCountTime(){
+        return isSetedCountTime;
+    }
+
     /**
      * 设置悬浮窗倒计时的时间
      * @see Desklayout#setCountTxt(String)
@@ -402,5 +434,13 @@ public class MainActivity extends BaseActivity {
         if (mDesktopLayout != null){
             mDesktopLayout.setTvNotifyText(text);
         }
+    }
+
+    public boolean isClickStart() {
+        return isClickStart;
+    }
+
+    public void setClickStart(boolean clickStart) {
+        isClickStart = clickStart;
     }
 }

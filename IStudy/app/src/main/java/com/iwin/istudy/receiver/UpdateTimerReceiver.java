@@ -8,6 +8,7 @@ import android.view.View;
 
 import com.iwin.istudy.R;
 import com.iwin.istudy.activity.MainActivity;
+import com.iwin.istudy.service.MonitorAppsService;
 
 public class UpdateTimerReceiver extends BroadcastReceiver {
     private String TAG = "UpdateTimerReceiver";
@@ -29,5 +30,6 @@ public class UpdateTimerReceiver extends BroadcastReceiver {
         ((MainActivity) context).setTvSecond(second);
         ((MainActivity) context).setSetedCountTime(true);
         ((MainActivity) context).setDesklayoutCountText(hour + ":" + minute + ":" + second);
+
     }
 }
