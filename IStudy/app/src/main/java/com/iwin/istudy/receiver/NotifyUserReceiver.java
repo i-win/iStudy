@@ -12,7 +12,6 @@ import com.iwin.istudy.R;
 import com.iwin.istudy.activity.MainActivity;
 import com.iwin.istudy.engine.PackagesInfo;
 import com.iwin.istudy.entity.AppInfo;
-import com.iwin.istudy.service.CountDownService;
 
 public class NotifyUserReceiver extends BroadcastReceiver {
     private String TAG = "NotifyUserReceiver";

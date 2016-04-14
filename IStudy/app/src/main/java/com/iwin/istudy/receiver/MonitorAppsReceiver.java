@@ -4,11 +4,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
-import android.view.View;
 
 import com.iwin.istudy.R;
-import com.iwin.istudy.activity.MainActivity;
-import com.iwin.istudy.engine.PackagesInfo;
 
 public class MonitorAppsReceiver extends BroadcastReceiver {
     private static final String TAG = "MonitorAppsReceiver";
