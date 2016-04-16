@@ -52,11 +52,15 @@ public class MonitorAppsService extends AccessibilityService {
             PowerManager manager = (PowerManager) this.getSystemService(POWER_SERVICE);
             if (manager.isScreenOn()){
                 Log.d(TAG,"开启屏幕");
-                AppInfo app = getAppInfo(this,event.getPackageName().toString());
-                if ((!app.isSystemApp()) && (!app.isMyApp())){
-                    sendOpenNewAppReceiver(app);
+                try {
+                    AppInfo app = getAppInfo(this,event.getPackageName().toString());
+                    if ((!app.isSystemApp()) && (!app.isMyApp())){
+                        sendOpenNewAppReceiver(app);
+                    }
+                    Log.d(TAG,"是否是系统应用："+app.isSystemApp());
+                }catch (NullPointerException e){
+                    e.printStackTrace();
                 }
-                Log.d(TAG,"是否是系统应用："+app.isSystemApp());
             } else {
                 Log.d(TAG,"关闭屏幕");
             }
@@ -127,19 +131,20 @@ public class MonitorAppsService extends AccessibilityService {
 
         ApplicationInfo appInfo = allPackagesInfo.getInfo(packageName);
         AppInfo app = new AppInfo();
-        app.setAppName(appInfo.loadLabel(pm));
-        app.setAppPackage(packageName);
-        if (((appInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0)){
-            app.setSystemApp(false);
-        } else {
-            app.setSystemApp(true);
+        if (appInfo != null){
+            app.setAppName(appInfo.loadLabel(pm));
+            app.setAppPackage(packageName);
+            if (((appInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0)){
+                app.setSystemApp(false);
+            } else {
+                app.setSystemApp(true);
+            }
+            if (app.getAppPackage().equals(getPackageName())){
+                app.setMyApp(true);
+            } else {
+                app.setMyApp(false);
+            }
         }
-        if (app.getAppPackage().equals(getPackageName())){
-            app.setMyApp(true);
-        } else {
-            app.setMyApp(false);
-        }
-
         return app;
     }
 }
