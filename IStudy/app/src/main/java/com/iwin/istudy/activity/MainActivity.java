@@ -36,6 +36,7 @@ import com.iwin.istudy.ui.Desklayout;
 import com.iwin.istudy.ui.WheelView;
 
 public class MainActivity extends BaseActivity {
+    private static final String TAG  = "MainActivity";
 
     private UpdateTimerReceiver updateTimerReceiver;
     private NotifyUserReceiver notifyUserReceiver;
@@ -492,4 +493,17 @@ public class MainActivity extends BaseActivity {
     public void setClickStart(boolean clickStart) {
         isClickStart = clickStart;
     }
+
+    /**
+     * 关闭其他应用，实际上并没有关闭应用，只是模拟点击Home键，将屏幕退回到主界面，以此模拟实现关闭效果
+     * @param packageName 要关闭的应用的包名
+     */
+    public void closeApp(String packageName) {
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_HOME);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        Log.d(TAG, "关闭应用:" + packageName);
+    }
+
 }

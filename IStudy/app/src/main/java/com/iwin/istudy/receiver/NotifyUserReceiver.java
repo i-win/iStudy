@@ -3,14 +3,11 @@ package com.iwin.istudy.receiver;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.util.Log;
 import android.view.View;
 
 import com.iwin.istudy.R;
 import com.iwin.istudy.activity.MainActivity;
-import com.iwin.istudy.engine.PackagesInfo;
 import com.iwin.istudy.entity.AppInfo;
 
 public class NotifyUserReceiver extends BroadcastReceiver {
@@ -27,10 +24,10 @@ public class NotifyUserReceiver extends BroadcastReceiver {
         Log.d(TAG,"是否点击开启:"+isClickStart);
         if (isNotifyOpenApp && isCountStart){
             //显示通知
-            String appPackageName = intent.getStringExtra(context.getString(R.string.app_packageName_of_open));
-            AppInfo app = getAppInfo(context,appPackageName);
+            AppInfo app = (AppInfo) intent.getSerializableExtra(context.getString(R.string.app_of_open));
             ((MainActivity) context).setDesklayoutNotifyVisiable(View.VISIBLE);
             ((MainActivity) context).setDesklayoutNotifyText("你打开了："+app.getAppName());
+            ((MainActivity) context).closeApp(app.getAppPackage());
             Log.d(TAG,"appName:"+app.getAppName());
         }else if (isClickStart){
             ((MainActivity)context).startCountService();
@@ -38,21 +35,4 @@ public class NotifyUserReceiver extends BroadcastReceiver {
         }
     }
 
-    /**
-     *
-     * @param context
-     * @param packageName
-     * @return 返回开启的APP信息，包括APP名，和App包名
-     */
-    private AppInfo getAppInfo(Context context,String packageName){
-        PackagesInfo allPackagesInfo = new PackagesInfo(context);
-        PackageManager pm = context.getPackageManager();
-
-        ApplicationInfo appInfo = allPackagesInfo.getInfo(packageName);
-        AppInfo app = new AppInfo();
-        app.setAppName(appInfo.loadLabel(pm));
-        app.setAppPackage(packageName);
-
-        return app;
-    }
 }

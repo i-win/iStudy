@@ -3,11 +3,16 @@ package com.iwin.istudy.service;
 import android.accessibilityservice.AccessibilityService;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.os.PowerManager;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 
 import com.iwin.istudy.R;
+import com.iwin.istudy.engine.PackagesInfo;
+import com.iwin.istudy.entity.AppInfo;
 
 public class MonitorAppsService extends AccessibilityService {
 
@@ -30,6 +35,12 @@ public class MonitorAppsService extends AccessibilityService {
         return mInstance;
     }
 
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        getInstance();
+        return super.onStartCommand(intent, flags, startId);
+    }
+
     /**
      * 监听窗口焦点,并且获取焦点窗口的包名
      * @param event
@@ -38,7 +49,18 @@ public class MonitorAppsService extends AccessibilityService {
     public void onAccessibilityEvent(AccessibilityEvent event) {
         if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED ){
             Log.d(TAG,"你打开了："+event.getPackageName());
-            sendOpenNewAppReceiver(event.getPackageName().toString());
+            PowerManager manager = (PowerManager) this.getSystemService(POWER_SERVICE);
+            if (manager.isScreenOn()){
+                Log.d(TAG,"开启屏幕");
+                AppInfo app = getAppInfo(this,event.getPackageName().toString());
+                if ((!app.isSystemApp()) && (!app.isMyApp())){
+                    sendOpenNewAppReceiver(app);
+                }
+                Log.d(TAG,"是否是系统应用："+app.isSystemApp());
+            } else {
+                Log.d(TAG,"关闭屏幕");
+            }
+
         }
     }
 
@@ -55,12 +77,12 @@ public class MonitorAppsService extends AccessibilityService {
     /**
      * 当监测到打开了某应用时发送的广播
      *
-     * @param appPackage 打开的应用的app包名
+     * @param app 打开的app
      */
-    private void sendOpenNewAppReceiver(String appPackage) {
+    private void sendOpenNewAppReceiver(AppInfo app) {
         Intent intent = new Intent();
         intent.putExtra("appState", "open");
-        intent.putExtra(getApplicationContext().getString(R.string.app_packageName_of_open), appPackage);
+        intent.putExtra(getApplicationContext().getString(R.string.app_of_open), app);
         intent.setAction(getApplicationContext().getString(R.string.open_a_app));
         sendBroadcast(intent);
     }
@@ -91,5 +113,33 @@ public class MonitorAppsService extends AccessibilityService {
             }
         }
         return false;
+    }
+
+    /**
+     *
+     * @param context
+     * @param packageName
+     * @return 返回开启的APP信息，包括APP名，和App包名
+     */
+    private AppInfo getAppInfo(Context context, String packageName) throws NullPointerException{
+        PackagesInfo allPackagesInfo = new PackagesInfo(context);
+        PackageManager pm = context.getPackageManager();
+
+        ApplicationInfo appInfo = allPackagesInfo.getInfo(packageName);
+        AppInfo app = new AppInfo();
+        app.setAppName(appInfo.loadLabel(pm));
+        app.setAppPackage(packageName);
+        if (((appInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0)){
+            app.setSystemApp(false);
+        } else {
+            app.setSystemApp(true);
+        }
+        if (app.getAppPackage().equals(getPackageName())){
+            app.setMyApp(true);
+        } else {
+            app.setMyApp(false);
+        }
+
+        return app;
     }
 }

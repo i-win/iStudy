@@ -1,14 +1,10 @@
 package com.iwin.istudy.ui;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
-import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.v4.view.PagerTitleStrip;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -44,7 +40,6 @@ public class Desklayout extends LinearLayout {
         //设置宽高
         this.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
         View view = LayoutInflater.from(context).inflate(R.layout.windows_layout, null);
-
         tvNotify = (TextView) view.findViewById(R.id.tv_notify);
         tvNotify.setOnClickListener(new OnClickListener() {
             @Override
