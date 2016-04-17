@@ -6,10 +6,11 @@
 
     <TextView
         android:id="@+id/tv_notify"
-        android:layout_width="wrap_content"
+        android:layout_width="100dp"
         android:layout_height="wrap_content"
         android:background="@drawable/notify_img"
         android:padding="10dp"
+        android:paddingBottom="50dp"
         android:textAlignment="center"
         android:visibility="invisible"/>
 

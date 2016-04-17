@@ -17,6 +17,7 @@
     <string name="app_info">AppInfo</string>
     <string name="app_packageName_of_open">appPackageNameOfOpen</string>
     <string name="app_name_of_open">appNameOfOpen</string>
+    <string name="app_of_open">appOfOpen</string>
 
     <string name="is_open_a_app">isOpenAAPP</string>
 
