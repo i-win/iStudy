@@ -11,9 +11,16 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
-    <style name="AnimationFade">
-        <!-- PopupWindow左右弹出的效果 -->
-        <item name="android:windowEnterAnimation">@anim/pop_input</item>
-        <item name="android:windowExitAnimation">@anim/pop_output</item>
+
+    <style name="AnimationFade_right">
+        <!-- PopupWindow右弹出的效果 -->
+        <item name="android:windowEnterAnimation">@anim/right_pop_input</item>
+        <item name="android:windowExitAnimation">@anim/right_pop_output</item>
+    </style>
+
+    <style name="dialogWindowAnim" parent="android:Animation" mce_bogus="1">
+        <!--计划弹出框动画-->
+        <item name="android:windowEnterAnimation">@anim/left_pop_input</item>
+        <item name="android:windowExitAnimation">@anim/left_pop_output</item>
     </style>
 </resources>

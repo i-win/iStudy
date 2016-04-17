@@ -5,6 +5,9 @@ import android.content.Intent;
 import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.Chronometer;
 
 import com.iwin.istudy.R;
 
@@ -25,7 +28,7 @@ public class CountDownService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.i("info","是否开启计时:"+ isStartCount);
+        Log.i("info", "是否开启计时:" + isStartCount);
         if (intent != null  && !isStartCount) {
             countHour = intent.getLongExtra(getResources().getString(R.string.countHour), 0);
             countMinute = intent.getLongExtra(getResources().getString(R.string.countMinute), 0);
@@ -33,10 +36,13 @@ public class CountDownService extends Service {
             Log.i("info", "!!!" + countHour + " " + countMinute + " " + countSecond+" "+ isStartCount);
 
             startCount();
+
+
         }
 
         return super.onStartCommand(intent, flags, startId);
     }
+
 
     @Override
     public IBinder onBind(Intent intent) {

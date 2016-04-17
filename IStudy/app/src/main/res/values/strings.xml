@@ -37,4 +37,6 @@
 
 
     <string name="strat_monitor_service">stratMonitorService</string>
+
+    <color name="vifrification">#00000000</color>   <!-- 透明 -->
 </resources>

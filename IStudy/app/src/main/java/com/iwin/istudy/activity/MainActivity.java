@@ -1,15 +1,23 @@
 package com.iwin.istudy.activity;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.support.v7.app.AlertDialog;
+import android.text.Layout;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -18,12 +26,21 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.AnimationUtils;
+import android.view.animation.RotateAnimation;
 import android.widget.Button;
+import android.widget.Chronometer;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.RadioGroup;
+import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.TimePicker;
+import android.widget.Toast;
 
 import com.iwin.istudy.R;
 import com.iwin.istudy.engine.TimerManager;
@@ -34,6 +51,10 @@ import com.iwin.istudy.service.CountDownService;
 import com.iwin.istudy.service.MonitorAppsService;
 import com.iwin.istudy.ui.Desklayout;
 import com.iwin.istudy.ui.WheelView;
+
+import org.w3c.dom.Text;
+
+import java.util.Calendar;
 
 public class MainActivity extends BaseActivity {
 
@@ -76,9 +97,21 @@ public class MainActivity extends BaseActivity {
     private TextView tvSecond;
     private LinearLayout linlayoutCountTime;
     private Button btnStartCount;
-    private ImageButton btnChangeColor;
-    private PopupWindow popupwindow;
-    private View layout_main;
+    private ImageButton btnLeftPlan;
+    private PopupWindow popupWindow_right;
+    private EditText edtPlan;
+    private ImageButton btnEdit;
+    private ImageButton btnSave;
+    private ImageButton btnAlarm;
+    private ScrollView scrollPlan;
+    private Calendar calendar;
+    private int hour;
+    private int minute;
+    private int hour_set;
+    private int minute_set;
+    private CountDownTimer alarm;
+    private TextView tvTotalTime;
+
     private void initView() {
         tvHour = (TextView) findViewById(R.id.tv_hour);
         tvMinute = (TextView) findViewById(R.id.tv_minute);
@@ -88,7 +121,7 @@ public class MainActivity extends BaseActivity {
         linlayoutCountTime.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!isSetedCountTime){
+                if (!isSetedCountTime) {
                     setCountTime();
                 }
             }
@@ -100,63 +133,178 @@ public class MainActivity extends BaseActivity {
             public void onClick(View v) {
                 stratMonitorService();
                 countServiceEnable();
+
             }
 
         });
 
-        btnChangeColor = (ImageButton)findViewById(R.id.btn_change_color);
-        btnChangeColor.setOnClickListener(new View.OnClickListener() {
+        btnLeftPlan = (ImageButton) findViewById(R.id.btn_left_plan);
+        btnLeftPlan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (popupwindow != null&&popupwindow.isShowing()) {
-                    popupwindow.dismiss();
+                final SharedPreferences preferences = getSharedPreferences("myPref", MODE_PRIVATE);  //将学习计划信息存储起来
+                final SharedPreferences.Editor editor = preferences.edit();
+                final String plan = preferences.getString("plan", "好的计划是成功的开始，快写下你的学习计划吧。");
+
+                LayoutInflater inflater = LayoutInflater.from(MainActivity.this);    //引入自定义布局
+                View view_dialog_plan = inflater.inflate(R.layout.dialog_plan, null);
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setView(view_dialog_plan);
+                final AlertDialog dialog_plan = builder.create();  //创建一个dialog
+                dialog_plan.show();
+
+                Window dialogPlanWindow = dialog_plan.getWindow();
+                dialogPlanWindow.setWindowAnimations(R.style.dialogWindowAnim);
+                WindowManager.LayoutParams lp = dialogPlanWindow.getAttributes();
+                lp.width = WindowManager.LayoutParams.WRAP_CONTENT;
+                lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+                dialogPlanWindow.setAttributes(lp);
+
+                edtPlan = (EditText) dialog_plan.findViewById(R.id.edt_plan);
+                edtPlan.setText(plan);
+
+                btnEdit = (ImageButton) dialog_plan.findViewById(R.id.btn_edit);
+                btnEdit.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        edtPlan.setEnabled(true);
+                    }
+                });
+
+                btnSave = (ImageButton) view_dialog_plan.findViewById(R.id.btn_save);
+                btnSave.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        edtPlan.setEnabled(false);
+                        editor.putString("plan", edtPlan.getText().toString());
+                        editor.commit();
+                        dialog_plan.dismiss();
+                    }
+                });
+
+                scrollPlan = (ScrollView) view_dialog_plan.findViewById(R.id.scroll_plan);
+                scrollPlan.getBackground().setAlpha(50);
+            }
+        });
+
+        btnAlarm = (ImageButton) findViewById(R.id.btn_alarm);
+        btnAlarm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (popupWindow_right != null && popupWindow_right.isShowing()) {
+                    popupWindow_right.dismiss();
                     return;
                 } else {
-                    initmPopupWindowView();
-                    popupwindow.showAsDropDown(v, 0, 5);
+                    initmPopupWindowView_right();
+                    popupWindow_right.showAsDropDown(v, 0, 5);
                 }
             }
         });
+
+        SharedPreferences preferences = getSharedPreferences("myPref2", MODE_PRIVATE);  //当前程序才能读取
+        int day = preferences.getInt("day", 0);
+        int hour = preferences.getInt("hour",0);
+        int minute = preferences.getInt("minute",0);
+        int second = preferences.getInt("second",0);
+        String totalTime = day + "天"+hour+"小时"+minute+"分钟"+second+"秒";
+        tvTotalTime = (TextView) findViewById(R.id.tv_total_time);
+        tvTotalTime.setText(totalTime);
     }
 
-    /**下拉框属性*/
-    public void initmPopupWindowView() {
-        // // 获取自定义布局文件pop.xml的视图
-        View customView = getLayoutInflater().inflate(R.layout.popcolor_item, null, false);
+    /**
+     * 右侧下拉框属性
+     */
+    public void initmPopupWindowView_right() {
+        final View customView_right = getLayoutInflater().inflate(R.layout.right_alarm, null, false);
         // 创建PopupWindow实例,200,150分别是宽度和高度
-        popupwindow = new PopupWindow(customView, 150, 200);
+        popupWindow_right = new PopupWindow(customView_right, 160, RadioGroup.LayoutParams.WRAP_CONTENT);
         // 设置动画效果 [R.style.AnimationFade 是自己事先定义好的]
-        popupwindow.setAnimationStyle(R.style.AnimationFade);
-        // 自定义view添加触摸事件
-        customView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (popupwindow != null && popupwindow.isShowing()) {
-                    popupwindow.dismiss();
-                    popupwindow = null;
-                }
-                return false;
-            }
-        });
-        /** 在这里可以实现自定义视图的功能 */
-        layout_main = findViewById(R.id.layout_main);
-        Button btnColorRed = (Button)customView.findViewById(R.id.btn_color_red);
-        btnColorRed.setOnClickListener(new View.OnClickListener() {
+        popupWindow_right.setAnimationStyle(R.style.AnimationFade_right);
+
+        calendar = Calendar.getInstance();
+        hour = calendar.get(Calendar.HOUR_OF_DAY);
+        minute = calendar.get(Calendar.MINUTE);
+
+        final NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        Notification.Builder builder = new Notification.Builder(MainActivity.this);
+        builder.setSmallIcon(R.mipmap.ic_launcher);   //设置通知图标
+        builder.setTicker("IStudy有新的通知");   //手机状态栏的提示
+        builder.setWhen(System.currentTimeMillis());   //设置通知的时间
+        builder.setContentTitle("IStudy");      //设置通知的标题
+        builder.setContentText("该学习了亲！");  //设置通知的内容
+        builder.setWhen(System.currentTimeMillis() + 5000);
+        Log.i("info", "!!!" + System.currentTimeMillis());
+        Intent intent = new Intent(MainActivity.this, MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivities(MainActivity.this, 0, new Intent[]{intent}, 0);
+        builder.setContentIntent(pendingIntent);     //设置点击通知之后的跳转
+        builder.setDefaults(Notification.DEFAULT_ALL);   //设置以上三种提示
+        final Notification notification = builder.build();   //4.1以下用builder.getNotification()
+        notification.flags = Notification.FLAG_AUTO_CANCEL;
+        manager.notify(0, notification);   //第一个参数为该通知的序号
+
+        SharedPreferences preferences = getSharedPreferences("myPref1", MODE_PRIVATE);  //将学习计划信息存储起来
+        final SharedPreferences.Editor editor1 = preferences.edit();
+        String time_set = preferences.getString("time", "设置提醒");
+
+        final Button btnAlarmSet = (Button) customView_right.findViewById(R.id.btn_alarm_set);
+        btnAlarmSet.setText(time_set);
+        btnAlarmSet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                layout_main.setBackgroundColor(Color.RED);
+                new TimePickerDialog(MainActivity.this, new TimePickerDialog.OnTimeSetListener() {
+                    @Override
+                    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                        if (hourOfDay < 10 && minute < 10) {
+                            String time = " 0" + hourOfDay + ":0" + minute + " ";
+                            btnAlarmSet.setText(time);
+                            editor1.putString("time", time);
+                            editor1.commit();
+                        } else if (hourOfDay >= 10 && minute < 10) {
+                            String time = " " + hourOfDay + ":0" + minute + " ";
+                            btnAlarmSet.setText(time);
+                            editor1.putString("time", time);
+                            editor1.commit();
+                        } else if (hourOfDay < 10 && minute >= 10) {
+                            String time = " 0" + hourOfDay + ":" + minute + " ";
+                            btnAlarmSet.setText(time);
+                            editor1.putString("time", time);
+                            editor1.commit();
+                        } else {
+                            String time = " " + hourOfDay + ":" + minute + " ";
+                            btnAlarmSet.setText(time);
+                            editor1.putString("time", time);
+                            editor1.commit();
+                        }
+                        hour_set = hourOfDay;
+                        minute_set = minute;
+                        int totalTime = (hour_set - hour) * 60 * 60 + (minute_set - minute) * 60;
+                        Long total = Long.parseLong(String.valueOf(totalTime));
+                        Log.i("info", "!!!" + total);
+                        alarm = new CountDownTimer(total * 1000, 1000) {
+                            @Override
+                            public void onTick(long millisUntilFinished) {
+                                Log.i("info", "!!!" + millisUntilFinished / 1000);
+                            }
+
+                            @Override
+                            public void onFinish() {
+
+                            }
+                        }.start();
+                    }
+                }, hour, minute, true).show();
             }
         });
-        Button btnColorYelllow = (Button)customView.findViewById(R.id.btn_color_yellow);
-        btnColorYelllow.setOnClickListener(new View.OnClickListener() {
+
+        Button btnAlarmCancle = (Button) customView_right.findViewById(R.id.btn_alarm_cancle);
+        btnAlarmCancle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                layout_main.setBackgroundColor(Color.YELLOW);
+                btnAlarmSet.setText("设置提醒");
+
             }
         });
-/*        Button btton2 = (Button) customView.findViewById(R.id.button2);
-        Button btton3 = (Button) customView.findViewById(R.id.button3);
-        Button btton4 = (Button) customView.findViewById(R.id.button4);*/
+
     }
 
     /**
@@ -165,7 +313,7 @@ public class MainActivity extends BaseActivity {
     private void registerNotifyUserReceiver() {
         notifyUserReceiver = new NotifyUserReceiver();
         IntentFilter filter = new IntentFilter(this.getString(R.string.notify_user_action));
-        this.registerReceiver(notifyUserReceiver,filter);
+        this.registerReceiver(notifyUserReceiver, filter);
     }
 
     /**
@@ -183,14 +331,14 @@ public class MainActivity extends BaseActivity {
     private void registerCountFinishReceiver() {
         countFinishReceiver = new CountDownFinishReceiver();
         IntentFilter filter = new IntentFilter(this.getString(R.string.countFinishAction));
-        this.registerReceiver(countFinishReceiver,filter);
+        this.registerReceiver(countFinishReceiver, filter);
     }
 
     /**
      * 设置倒计时时间
      */
     private void setCountTime() {
-        View wheelView = LayoutInflater.from(this).inflate(R.layout.dialog_wheel_view,null);
+        View wheelView = LayoutInflater.from(this).inflate(R.layout.dialog_wheel_view, null);
         final WheelView wvHour = (WheelView) wheelView.findViewById(R.id.wv_hour);
         final WheelView wvMinute = (WheelView) wheelView.findViewById(R.id.wv_minute);
         final WheelView wvSecond = (WheelView) wheelView.findViewById(R.id.wv_second);
@@ -236,7 +384,7 @@ public class MainActivity extends BaseActivity {
      * 提示并引导用户开启辅助权限
      */
     private void showNoPermission() {
-        if (noPermissionDialog == null){
+        if (noPermissionDialog == null) {
             noPermissionDialog = new AlertDialog.Builder(this)
                     .setTitle(this.getString(R.string.no_permission))
                     .setMessage(this.getString(R.string.no_permission_advice))
@@ -268,7 +416,7 @@ public class MainActivity extends BaseActivity {
         intent.putExtra(this.getString(R.string.countSecond), Long.parseLong(tvSecond.getText().toString()));
         //启动服务
         startService(intent);
-        if (mDesktopLayout == null){
+        if (mDesktopLayout == null) {
             createWindowManager();
             createDesktopLayout();
             showDesk();
@@ -279,7 +427,7 @@ public class MainActivity extends BaseActivity {
      * 先判断是否开启辅助权限，若已开启，则直接启动倒计时服务，若还没开启，等待开启完后再开启倒计时服务
      */
     private void countServiceEnable() {
-        if (MonitorAppsService.isAccessibilitySettingsOn(MainActivity.this)){
+        if (MonitorAppsService.isAccessibilitySettingsOn(MainActivity.this)) {
             startCountService();
         } else {
             setClickStart(true);
@@ -411,76 +559,83 @@ public class MainActivity extends BaseActivity {
 
     /**
      * 设置TextView 小时的值
+     *
      * @param text
      */
-    public void setTvHour(String text){
-        if (tvHour != null){
+    public void setTvHour(String text) {
+        if (tvHour != null) {
             tvHour.setText(text);
         }
     }
 
     /**
      * 设置TextView 分钟的值
+     *
      * @param text
      */
     public void setTvMinute(String text) {
-        if (tvMinute != null){
+        if (tvMinute != null) {
             tvMinute.setText(text);
         }
     }
 
     /**
      * 设置TextView 秒的值
+     *
      * @param text
      */
 
     public void setTvSecond(String text) {
-        if (tvSecond != null){
+        if (tvSecond != null) {
             tvSecond.setText(text);
         }
     }
 
     /**
      * 设置时间选择的使能
+     *
      * @param set
      */
     public void setSetedCountTime(boolean set) {
         isSetedCountTime = set;
     }
 
-    public boolean getIsSetedCountTime(){
+    public boolean getIsSetedCountTime() {
         return isSetedCountTime;
     }
 
     /**
      * 设置悬浮窗倒计时的时间
-     * @see Desklayout#setCountTxt(String)
+     *
      * @param text
+     * @see Desklayout#setCountTxt(String)
      */
-    public void setDesklayoutCountText(String text){
-        if (mDesktopLayout != null){
+    public void setDesklayoutCountText(String text) {
+        if (mDesktopLayout != null) {
             mDesktopLayout.setCountTxt(text);
         }
     }
 
     /**
      * 设置悬浮窗弹出窗的可见性
-     * @see Desklayout#setTvNotifyVisiable(int)
+     *
      * @param vis
+     * @see Desklayout#setTvNotifyVisiable(int)
      */
-    public void setDesklayoutNotifyVisiable(int vis){
-        if (mDesktopLayout != null){
+    public void setDesklayoutNotifyVisiable(int vis) {
+        if (mDesktopLayout != null) {
             mDesktopLayout.setTvNotifyVisiable(vis);
         }
     }
 
     /**
      * 设置悬浮窗的弹出窗的内容
-     * @see Desklayout#setTvNotifyText(CharSequence)
+     *
      * @param text
+     * @see Desklayout#setTvNotifyText(CharSequence)
      */
-    public void setDesklayoutNotifyText(CharSequence text){
-        if (mDesktopLayout != null){
+    public void setDesklayoutNotifyText(CharSequence text) {
+        if (mDesktopLayout != null) {
             mDesktopLayout.setTvNotifyText(text);
         }
     }
@@ -492,4 +647,14 @@ public class MainActivity extends BaseActivity {
     public void setClickStart(boolean clickStart) {
         isClickStart = clickStart;
     }
+
+    /**
+     * 设置了累计时间
+     */
+    public void setTvTotalTime(String text) {
+        if (text != null) {
+            tvTotalTime.setText(text);
+        }
+    }
+
 }
