@@ -19,7 +19,7 @@ public class MonitorAppsReceiver extends BroadcastReceiver {
         if (appState.equals("open")){
             AppInfo app = (AppInfo) intent.getSerializableExtra(context.getString(R.string.app_of_open));
             if (app != null){
-                Log.d(TAG,"你打开了："+app.getAppName());
+//                Log.d(TAG,"你打开了："+app.getAppName());
                 //发送打开一个app广播
                 sendOpenAppReceiver(context,app);
             }

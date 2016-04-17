@@ -54,9 +54,7 @@ public class MonitorAppsService extends AccessibilityService {
                 Log.d(TAG,"开启屏幕");
                 try {
                     AppInfo app = getAppInfo(this,event.getPackageName().toString());
-                    if ((!app.isSystemApp()) && (!app.isMyApp())){
-                        sendOpenNewAppReceiver(app);
-                    }
+                    sendOpenNewAppReceiver(app);
                     Log.d(TAG,"是否是系统应用："+app.isSystemApp());
                 }catch (NullPointerException e){
                     e.printStackTrace();
