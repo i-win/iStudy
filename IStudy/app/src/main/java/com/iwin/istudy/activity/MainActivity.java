@@ -1,5 +1,6 @@
 package com.iwin.istudy.activity;
 
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -44,6 +45,7 @@ import android.widget.Toast;
 
 import com.iwin.istudy.R;
 import com.iwin.istudy.engine.TimerManager;
+import com.iwin.istudy.receiver.AlarmBroadcastReceiver;
 import com.iwin.istudy.receiver.CountDownFinishReceiver;
 import com.iwin.istudy.receiver.NotifyUserReceiver;
 import com.iwin.istudy.receiver.UpdateTimerReceiver;
@@ -55,6 +57,8 @@ import com.iwin.istudy.ui.WheelView;
 import org.w3c.dom.Text;
 
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 public class MainActivity extends BaseActivity {
     private static final String TAG  = "MainActivity";
@@ -83,6 +87,8 @@ public class MainActivity extends BaseActivity {
         registerCountDownReceiver();
         registerCountFinishReceiver();
         registerNotifyUserReceiver();
+
+        overridePendingTransition(R.anim.activity_output, R.anim.activity_input);
     }
 
     @Override
@@ -104,14 +110,11 @@ public class MainActivity extends BaseActivity {
     private ImageButton btnEdit;
     private ImageButton btnSave;
     private ImageButton btnAlarm;
+    private Button btnAlarmSet;
     private ScrollView scrollPlan;
-    private Calendar calendar;
-    private int hour;
-    private int minute;
-    private int hour_set;
-    private int minute_set;
-    private CountDownTimer alarm;
     private TextView tvTotalTime;
+    AlarmManager alarmManager;
+    Calendar calendar = Calendar.getInstance(Locale.CHINESE);
 
     private void initView() {
         tvHour = (TextView) findViewById(R.id.tv_hour);
@@ -145,7 +148,7 @@ public class MainActivity extends BaseActivity {
             public void onClick(View v) {
                 final SharedPreferences preferences = getSharedPreferences("myPref", MODE_PRIVATE);  //将学习计划信息存储起来
                 final SharedPreferences.Editor editor = preferences.edit();
-                final String plan = preferences.getString("plan", "好的计划是成功的开始，快写下你的学习计划吧。");
+                final String plan = preferences.getString("plan", "");
 
                 LayoutInflater inflater = LayoutInflater.from(MainActivity.this);    //引入自定义布局
                 View view_dialog_plan = inflater.inflate(R.layout.dialog_plan, null);
@@ -204,7 +207,7 @@ public class MainActivity extends BaseActivity {
 
         SharedPreferences preferences = getSharedPreferences("myPref2", MODE_PRIVATE);  //当前程序才能读取
         int day = preferences.getInt("day", 0);
-        int hour = preferences.getInt("hour",0);
+        int hour = preferences.getInt("hour", 0);
         int minute = preferences.getInt("minute",0);
         int second = preferences.getInt("second",0);
         String totalTime = day + "天"+hour+"小时"+minute+"分钟"+second+"秒";
@@ -218,43 +221,34 @@ public class MainActivity extends BaseActivity {
     public void initmPopupWindowView_right() {
         final View customView_right = getLayoutInflater().inflate(R.layout.right_alarm, null, false);
         // 创建PopupWindow实例,200,150分别是宽度和高度
-        popupWindow_right = new PopupWindow(customView_right, 160, RadioGroup.LayoutParams.WRAP_CONTENT);
+        popupWindow_right = new PopupWindow(customView_right, RadioGroup.LayoutParams.WRAP_CONTENT, RadioGroup.LayoutParams.WRAP_CONTENT);
         // 设置动画效果 [R.style.AnimationFade 是自己事先定义好的]
         popupWindow_right.setAnimationStyle(R.style.AnimationFade_right);
-
-        calendar = Calendar.getInstance();
-        hour = calendar.get(Calendar.HOUR_OF_DAY);
-        minute = calendar.get(Calendar.MINUTE);
-
-        final NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        Notification.Builder builder = new Notification.Builder(MainActivity.this);
-        builder.setSmallIcon(R.mipmap.ic_launcher);   //设置通知图标
-        builder.setTicker("IStudy有新的通知");   //手机状态栏的提示
-        builder.setWhen(System.currentTimeMillis());   //设置通知的时间
-        builder.setContentTitle("IStudy");      //设置通知的标题
-        builder.setContentText("该学习了亲！");  //设置通知的内容
-        builder.setWhen(System.currentTimeMillis() + 5000);
-        Log.i("info", "!!!" + System.currentTimeMillis());
-        Intent intent = new Intent(MainActivity.this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivities(MainActivity.this, 0, new Intent[]{intent}, 0);
-        builder.setContentIntent(pendingIntent);     //设置点击通知之后的跳转
-        builder.setDefaults(Notification.DEFAULT_ALL);   //设置以上三种提示
-        final Notification notification = builder.build();   //4.1以下用builder.getNotification()
-        notification.flags = Notification.FLAG_AUTO_CANCEL;
-        manager.notify(0, notification);   //第一个参数为该通知的序号
 
         SharedPreferences preferences = getSharedPreferences("myPref1", MODE_PRIVATE);  //将学习计划信息存储起来
         final SharedPreferences.Editor editor1 = preferences.edit();
         String time_set = preferences.getString("time", "设置提醒");
 
-        final Button btnAlarmSet = (Button) customView_right.findViewById(R.id.btn_alarm_set);
+        alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        Intent intent = new Intent();
+        intent.setAction(this.getString(R.string.alarm_goes_off));
+        final PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
+
+        btnAlarmSet = (Button) customView_right.findViewById(R.id.btn_alarm_set);
         btnAlarmSet.setText(time_set);
         btnAlarmSet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Date date = new Date();
+                calendar.setTime(date);
+                int hour = calendar.get(Calendar.HOUR_OF_DAY);
+                int minute = calendar.get(Calendar.MINUTE);
                 new TimePickerDialog(MainActivity.this, new TimePickerDialog.OnTimeSetListener() {
                     @Override
                     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                        Toast toast = Toast.makeText(MainActivity.this, "设置提醒成功", Toast.LENGTH_SHORT);
+                        toast.setGravity(Gravity.CENTER, 0, 0);
+                        toast.show();
                         if (hourOfDay < 10 && minute < 10) {
                             String time = " 0" + hourOfDay + ":0" + minute + " ";
                             btnAlarmSet.setText(time);
@@ -276,24 +270,13 @@ public class MainActivity extends BaseActivity {
                             editor1.putString("time", time);
                             editor1.commit();
                         }
-                        hour_set = hourOfDay;
-                        minute_set = minute;
-                        int totalTime = (hour_set - hour) * 60 * 60 + (minute_set - minute) * 60;
-                        Long total = Long.parseLong(String.valueOf(totalTime));
-                        Log.i("info", "!!!" + total);
-                        alarm = new CountDownTimer(total * 1000, 1000) {
-                            @Override
-                            public void onTick(long millisUntilFinished) {
-                                Log.i("info", "!!!" + millisUntilFinished / 1000);
-                            }
-
-                            @Override
-                            public void onFinish() {
-
-                            }
-                        }.start();
+                        calendar.set(Calendar.HOUR_OF_DAY,hourOfDay);
+                        calendar.set(Calendar.MINUTE,minute);
+                        calendar.set(Calendar.SECOND,0);
+                        Log.d(TAG, "当前时间:" + calendar.getTime() + "||" + calendar.getTimeInMillis());
+                        alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
                     }
-                }, hour, minute, true).show();
+                },hour,minute,true).show();
             }
         });
 
@@ -302,11 +285,15 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
                 btnAlarmSet.setText("设置提醒");
-
+                editor1.putString("time","设置提醒");
+                editor1.commit();
+                alarmManager.cancel(pendingIntent);
             }
         });
-
     }
+
+
+
 
     /**
      * 注册监听用户打开的APP信息广播
@@ -334,6 +321,8 @@ public class MainActivity extends BaseActivity {
         IntentFilter filter = new IntentFilter(this.getString(R.string.countFinishAction));
         this.registerReceiver(countFinishReceiver, filter);
     }
+
+
 
     /**
      * 设置倒计时时间
