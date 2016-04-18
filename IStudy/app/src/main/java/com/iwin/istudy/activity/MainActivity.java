@@ -61,7 +61,7 @@ import java.util.Date;
 import java.util.Locale;
 
 public class MainActivity extends BaseActivity {
-    private static final String TAG  = "MainActivity";
+    private static final String TAG = "MainActivity";
 
     private UpdateTimerReceiver updateTimerReceiver;
     private NotifyUserReceiver notifyUserReceiver;
@@ -650,10 +650,12 @@ public class MainActivity extends BaseActivity {
 
     /**
      * 关闭其他应用，实际上并没有关闭应用，只是模拟点击Home键，将屏幕退回到主界面，以此模拟实现关闭效果
+     *
      * @param packageName 要关闭的应用的包名
      */
     public void closeApp(String packageName) {
-        Intent intent = new Intent(Intent.ACTION_MAIN);
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_HOME);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
