@@ -26,9 +26,9 @@ public class NotifyUserReceiver extends BroadcastReceiver {
             //显示通知
             AppInfo app = (AppInfo) intent.getSerializableExtra(context.getString(R.string.app_of_open));
             if ((!app.isMyApp()) && (!app.isSystemApp())){
+                ((MainActivity) context).closeApp(app.getAppPackage());
                 ((MainActivity) context).setDesklayoutNotifyVisiable(View.VISIBLE);
                 ((MainActivity) context).setDesklayoutNotifyText("你打开了："+app.getAppName());
-                ((MainActivity) context).closeApp(app.getAppPackage());
             }
             Log.d(TAG,"appName:"+app.getAppName());
         }else if (isClickStart){

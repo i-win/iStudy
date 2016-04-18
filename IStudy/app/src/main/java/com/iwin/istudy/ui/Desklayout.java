@@ -8,6 +8,8 @@ import android.support.v4.view.ViewPager;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -30,8 +32,7 @@ public class Desklayout extends LinearLayout {
     private PagerTitleStrip tab;
     private List<String> titlelist;
     private TextView count_txt;
-    private TextView tvNotify;
-
+    private LinearLayout windowPet;
 
     public Desklayout(final Context context) {
         super(context);
@@ -40,13 +41,8 @@ public class Desklayout extends LinearLayout {
         //设置宽高
         this.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
         View view = LayoutInflater.from(context).inflate(R.layout.windows_layout, null);
-        tvNotify = (TextView) view.findViewById(R.id.tv_notify);
-        tvNotify.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setTvNotifyVisiable(View.INVISIBLE);
-            }
-        });
+        windowPet = (LinearLayout) view.findViewById(R.id.window_pet);
+
         flipper = (ViewFlipper) view.findViewById(R.id.flipper);
         //动态导入的方式为ViewFlipper加入子View
         resId = new int[]{R.drawable.clean_a1, R.drawable.clean_a1, R.drawable.clean_a1,
@@ -209,19 +205,11 @@ public class Desklayout extends LinearLayout {
         count_txt.setText(text);
     }
 
-    /**
-     * 设置通知气泡的内容
-     * @param text 要通知的内容
-     */
-    public void setTvNotifyText(CharSequence text){
-        tvNotify.setText(text);
+    public int getPetWidth(){
+        return windowPet.getWidth();
     }
 
-    /**
-     * 设置通知气泡的显示
-     * @param visiable {@value VISIBLE,GONE,INVISIBLE}
-     */
-    public void setTvNotifyVisiable(int visiable){
-        tvNotify.setVisibility(visiable);
+    public int getPetHeight(){
+        return windowPet.getHeight();
     }
 }

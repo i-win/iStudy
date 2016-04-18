@@ -31,7 +31,7 @@ public class TimerManager {
         for (int i=0;i<10;i++){
             minute.add("0"+i);
         }
-        for (int i=10;i<=60;i++){
+        for (int i=10;i<60;i++){
             minute.add(""+i);
         }
         return  minute;
@@ -46,7 +46,7 @@ public class TimerManager {
         for (int i=0;i<10;i++){
             second.add("0"+i);
         }
-        for (int i=10;i<=60;i++){
+        for (int i=10;i<60;i++){
             second.add(""+i);
         }
         return  second;

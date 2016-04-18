@@ -9,15 +9,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.SystemClock;
 import android.provider.Settings;
 import android.support.v7.app.AlertDialog;
-import android.text.Layout;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -28,10 +25,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.animation.AnimationUtils;
-import android.view.animation.RotateAnimation;
 import android.widget.Button;
-import android.widget.Chronometer;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -40,7 +34,6 @@ import android.widget.RadioGroup;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.TimePicker;
-import android.widget.Toast;
 
 import com.iwin.istudy.R;
 import com.iwin.istudy.engine.TimerManager;
@@ -50,9 +43,8 @@ import com.iwin.istudy.receiver.UpdateTimerReceiver;
 import com.iwin.istudy.service.CountDownService;
 import com.iwin.istudy.service.MonitorAppsService;
 import com.iwin.istudy.ui.Desklayout;
+import com.iwin.istudy.ui.NotifyLayout;
 import com.iwin.istudy.ui.WheelView;
-
-import org.w3c.dom.Text;
 
 import java.util.Calendar;
 
@@ -65,7 +57,9 @@ public class MainActivity extends BaseActivity {
 
     private WindowManager mWindowManager;
     private WindowManager.LayoutParams mLayout;
+    private WindowManager.LayoutParams notifyParams;
     private Desklayout mDesktopLayout;
+    private NotifyLayout notifyLayout;
     private boolean isSetedCountTime = false;
     private boolean isClickStart = false;
     private long startTime;
@@ -204,10 +198,10 @@ public class MainActivity extends BaseActivity {
 
         SharedPreferences preferences = getSharedPreferences("myPref2", MODE_PRIVATE);  //当前程序才能读取
         int day = preferences.getInt("day", 0);
-        int hour = preferences.getInt("hour",0);
-        int minute = preferences.getInt("minute",0);
-        int second = preferences.getInt("second",0);
-        String totalTime = day + "天"+hour+"小时"+minute+"分钟"+second+"秒";
+        int hour = preferences.getInt("hour", 0);
+        int minute = preferences.getInt("minute", 0);
+        int second = preferences.getInt("second", 0);
+        String totalTime = day + "天" + hour + "小时" + minute + "分钟" + second + "秒";
         tvTotalTime = (TextView) findViewById(R.id.tv_total_time);
         tvTotalTime.setText(totalTime);
     }
@@ -420,7 +414,7 @@ public class MainActivity extends BaseActivity {
         if (mDesktopLayout == null) {
             createWindowManager();
             createDesktopLayout();
-            showDesk();
+            showDesk(mDesktopLayout);
         }
     }
 
@@ -453,6 +447,7 @@ public class MainActivity extends BaseActivity {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         // 获取相对View的坐标，即以此View左上角为原点
+                        setDesklayoutNotifyVisiable(View.GONE);
                         mTouchStartX = event.getX();
                         mTouchStartY = event.getY();
                         Log.i("startP", "startX" + mTouchStartX + "====startY" + mTouchStartY);
@@ -497,15 +492,15 @@ public class MainActivity extends BaseActivity {
     /**
      * 显示DesktopLayout
      */
-    private void showDesk() {
-        mWindowManager.addView(mDesktopLayout, mLayout);
+    private void showDesk(View view) {
+        mWindowManager.addView(view, mLayout);
     }
 
     /**
      * 关闭DesktopLayout
      */
-    private void closeDesk() {
-        mWindowManager.removeView(mDesktopLayout);
+    private void closeDesk(View view) {
+        mWindowManager.removeView(view);
     }
 
     /**
@@ -532,6 +527,30 @@ public class MainActivity extends BaseActivity {
         mLayout.x = 200;
         mLayout.y = 300;
         //设置出现的动画
+    }
+
+    public void showNotifyWindow(){
+        notifyParams = new WindowManager.LayoutParams();
+        notifyParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
+        notifyParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+        notifyParams.format = PixelFormat.RGBA_8888;
+        notifyParams.width = WindowManager.LayoutParams.WRAP_CONTENT;
+        notifyParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
+
+        int[] location = new int[2];
+        mDesktopLayout.getLocationOnScreen(location);
+        Log.d(TAG,"宠物位置:"+location[0]+"  "+location[1]);
+        //设置出现的位置
+        notifyParams.x = mLayout.x - mDesktopLayout.getWidth() - notifyLayout.getNotityWidth() + notifyLayout.getWidth()/6;
+        notifyParams.y = mLayout.y - mDesktopLayout.getHeight() - notifyLayout.getNotifyHeight();
+        Log.d(TAG,"弹窗位置:"+notifyParams.x+"  "+notifyParams.y+";弹窗大小"+notifyLayout.getNotityWidth()+" "+notifyLayout.getNotifyHeight());
+        if (notifyParams.x < (notifyLayout.getWidth()/3-notifyLayout.getWidth()-20)){
+            notifyLayout.setBackground(R.drawable.dialog_righttop);
+            notifyParams.x = mLayout.x;
+        } else {
+            notifyLayout.setBackground(R.drawable.dialog_lefttop);
+        }
+        mWindowManager.addView(notifyLayout,notifyParams);
     }
 
     @Override    //左下角菜单
@@ -621,23 +640,42 @@ public class MainActivity extends BaseActivity {
      * 设置悬浮窗弹出窗的可见性
      *
      * @param vis
-     * @see Desklayout#setTvNotifyVisiable(int)
+     * @see NotifyLayout#setNotifyVisiable(int)
      */
     public void setDesklayoutNotifyVisiable(int vis) {
-        if (mDesktopLayout != null) {
-            mDesktopLayout.setTvNotifyVisiable(vis);
+        if (notifyLayout == null) {
+            notifyLayout = new NotifyLayout(MainActivity.this);
+            notifyLayout.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    setDesklayoutNotifyVisiable(View.GONE);
+                }
+            });
         }
+        if (vis == View.GONE){
+            if (notifyLayout.getNotifyVisiable() == View.VISIBLE){
+                mWindowManager.removeView(notifyLayout);
+                notifyLayout.setNotifyVisiable(View.GONE);
+            }
+        } else if (vis == View.VISIBLE){
+            Log.d(TAG,"设置对话框显示"+notifyLayout.getVisibility());
+            if (notifyLayout.getNotifyVisiable() == View.GONE){
+                notifyLayout.setNotifyVisiable(View.VISIBLE);
+                showNotifyWindow();
+            }
+        }
+
     }
 
     /**
      * 设置悬浮窗的弹出窗的内容
      *
      * @param text
-     * @see Desklayout#setTvNotifyText(CharSequence)
+     * @see NotifyLayout#setTvNotifyText(CharSequence)
      */
     public void setDesklayoutNotifyText(CharSequence text) {
-        if (mDesktopLayout != null) {
-            mDesktopLayout.setTvNotifyText(text);
+        if (notifyLayout != null) {
+            notifyLayout.setTvNotifyText(text);
         }
     }
 
