@@ -12,6 +12,7 @@
     <string name="notify_user_action">com.iwin.istudy.receiver.MonitorAppsReceiver</string>
     <string name="open_a_app">com.iwin.istudy.service.MonitorAppsService.openApp</string>
     <string name="close_a_app">com.iwin.istudy.service.MonitorAppsService.closeApp</string>
+    <string name="alarm_goes_off">com.iwin.istudy.activity.MainActivity.alarmGoesOff</string>
 
     <!--监测打开或关闭的app-->
     <string name="app_info">AppInfo</string>
