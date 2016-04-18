@@ -25,7 +25,10 @@ public class NotifyUserReceiver extends BroadcastReceiver {
         if (isNotifyOpenApp && isCountStart){
             //显示通知
             AppInfo app = (AppInfo) intent.getSerializableExtra(context.getString(R.string.app_of_open));
+            Log.d(TAG,"App:"+app.getAppName()+" 系统："+app.isSystemApp()+"自己:"+app.isMyApp());
+
             if ((!app.isMyApp()) && (!app.isSystemApp())){
+                Log.d(TAG,"调用Home");
                 ((MainActivity) context).closeApp(app.getAppPackage());
                 ((MainActivity) context).setDesklayoutNotifyVisiable(View.VISIBLE);
                 ((MainActivity) context).setDesklayoutNotifyText("你打开了："+app.getAppName());
@@ -36,5 +39,4 @@ public class NotifyUserReceiver extends BroadcastReceiver {
             ((MainActivity)context).setClickStart(false);
         }
     }
-
 }

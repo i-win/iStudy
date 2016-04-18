@@ -1,8 +1,6 @@
 package com.iwin.istudy.activity;
 
 import android.app.AlarmManager;
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TimePickerDialog;
 import android.content.Context;
@@ -13,7 +11,6 @@ import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.provider.Settings;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
@@ -39,7 +36,6 @@ import android.widget.Toast;
 
 import com.iwin.istudy.R;
 import com.iwin.istudy.engine.TimerManager;
-import com.iwin.istudy.receiver.AlarmBroadcastReceiver;
 import com.iwin.istudy.receiver.CountDownFinishReceiver;
 import com.iwin.istudy.receiver.NotifyUserReceiver;
 import com.iwin.istudy.receiver.UpdateTimerReceiver;
@@ -697,7 +693,7 @@ public class MainActivity extends BaseActivity {
         intent.setAction(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_HOME);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
+        (getApplicationContext()).startActivity(intent);
         Log.d(TAG, "关闭应用:" + packageName);
     }
 
