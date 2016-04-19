@@ -27,7 +27,7 @@ public class NotifyUserReceiver extends BroadcastReceiver {
             AppInfo app = (AppInfo) intent.getSerializableExtra(context.getString(R.string.app_of_open));
             Log.d(TAG,"App:"+app.getAppName()+" 系统："+app.isSystemApp()+"自己:"+app.isMyApp());
 
-            if ((!app.isMyApp()) && (!app.isSystemApp())){
+            if ((!app.isMyApp()) && (!app.isSystemApp()) && (app.getAppName() != null) ){
                 Log.d(TAG,"调用Home");
                 ((MainActivity) context).closeApp(app.getAppPackage());
                 ((MainActivity) context).setNotifyLayoutVisiable(View.VISIBLE);

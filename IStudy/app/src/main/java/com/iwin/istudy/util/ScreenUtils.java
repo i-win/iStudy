@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
+import android.support.annotation.Size;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.WindowManager;
@@ -13,6 +14,7 @@ import android.view.WindowManager;
  * Created by sxq on 2016/4/18.
  */
 public class ScreenUtils {
+    private static final String TAG = "ScreenUtils";
 
     private ScreenUtils() {
         /* cannot be instantiated */
@@ -113,5 +115,33 @@ public class ScreenUtils {
 
     }
 
-
+    /**
+     * 将手机屏幕分成{@code wn}列,{@code hn}行，判断点(x,y)在哪一行哪一列，以二维数组返回，
+     * {@code location[0]}表示第几行，{@code location[1]}表示第几列
+     *
+     * @param context
+     * @param x
+     * @param y
+     * @param wn 将屏幕分成wn列
+     * @param hn 将屏幕分成hn行
+     * @return
+     */
+    public static @Size(2) int[] inAreaOfScreen(Context context, int x, int y, int wn, int hn){
+        int[] location = new int[2];
+        int screenWidth = getScreenWidth(context);
+        int screenHeight = getScreenHeight(context);
+        for (int i=1;i<=wn;i++){
+            if (x < (i*screenWidth/wn)){
+                location[1] = i;
+                break;
+            }
+        }
+        for (int i=1;i<=hn;i++){
+            if (y < (i*screenHeight/hn)){
+                location[0] = i;
+                break;
+            }
+        }
+        return location;
+    }
 }

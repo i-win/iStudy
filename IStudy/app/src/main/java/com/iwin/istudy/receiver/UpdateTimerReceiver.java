@@ -33,7 +33,7 @@ public class UpdateTimerReceiver extends BroadcastReceiver {
         ((MainActivity) context).setTvMinute(minute);
         ((MainActivity) context).setTvSecond(second);
         ((MainActivity) context).setSetedCountTime(true);
-        ((MainActivity) context).setDesklayoutCountText(hour + ":" + minute + ":" + second);
+        ((MainActivity) context).setPetTimeText(hour + ":" + minute + ":" + second);
 
         SharedPreferences preferences = context.getSharedPreferences("myPref2", Context.MODE_PRIVATE);  //当前程序才能读取
         SharedPreferences.Editor editor = preferences.edit();

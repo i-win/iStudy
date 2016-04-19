@@ -41,4 +41,12 @@
     <string name="strat_monitor_service">stratMonitorService</string>
 
     <color name="vifrification">#00000000</color>   <!-- 透明 -->
+
+    <!--温馨提示-->
+    <string-array name="pet_saying">
+        <item >不要玩了，快点学习吧~</item>
+        <item >hhh~,去学习吧，反正你也打不开</item>
+        <item >zan~,应用解锁了，快去休息下吧</item>
+        <item >byebye~俺先睡会，不要偷懒哦</item>
+    </string-array>
 </resources>

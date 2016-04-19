@@ -66,11 +66,11 @@ public class NotifyLayout extends LinearLayout {
     }
 
     public int getNotityWidth(){
-        return notifyContainer.getWidth()==0 ? 350 : notifyContainer.getWidth();
+        return notifyContainer.getWidth()==0 ? 352 : notifyContainer.getWidth();
     }
 
     public int getNotifyHeight(){
-        return notifyContainer.getHeight()==0 ? 300 : notifyContainer.getWidth();
+        return notifyContainer.getHeight()==0 ? 294 : notifyContainer.getHeight();
     }
 
     public void setBackground(int res){
