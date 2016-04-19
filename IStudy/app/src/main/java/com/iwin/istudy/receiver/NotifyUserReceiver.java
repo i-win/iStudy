@@ -30,8 +30,8 @@ public class NotifyUserReceiver extends BroadcastReceiver {
             if ((!app.isMyApp()) && (!app.isSystemApp())){
                 Log.d(TAG,"调用Home");
                 ((MainActivity) context).closeApp(app.getAppPackage());
-                ((MainActivity) context).setDesklayoutNotifyVisiable(View.VISIBLE);
-                ((MainActivity) context).setDesklayoutNotifyText("你打开了："+app.getAppName());
+                ((MainActivity) context).setNotifyLayoutVisiable(View.VISIBLE);
+                ((MainActivity) context).setNotifyLayoutText("你打开了："+app.getAppName());
             }
             Log.d(TAG,"appName:"+app.getAppName());
         }else if (isClickStart){

@@ -43,7 +43,9 @@ import com.iwin.istudy.service.CountDownService;
 import com.iwin.istudy.service.MonitorAppsService;
 import com.iwin.istudy.ui.Desklayout;
 import com.iwin.istudy.ui.NotifyLayout;
+import com.iwin.istudy.ui.PetLayout;
 import com.iwin.istudy.ui.WheelView;
+import com.iwin.istudy.util.ScreenUtils;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -55,18 +57,13 @@ public class MainActivity extends BaseActivity {
     private UpdateTimerReceiver updateTimerReceiver;
     private NotifyUserReceiver notifyUserReceiver;
     private CountDownFinishReceiver countFinishReceiver;
-
     private WindowManager mWindowManager;
-    private WindowManager.LayoutParams mLayout;
+
+    private WindowManager.LayoutParams desktopParams;
     private WindowManager.LayoutParams notifyParams;
     private Desklayout mDesktopLayout;
     private NotifyLayout notifyLayout;
-    private boolean isSetedCountTime = false;
-    private boolean isClickStart = false;
-    private long startTime;
-    // 声明屏幕的宽高
-    float x, y;
-    int top;
+    private PetLayout petLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,7 +76,29 @@ public class MainActivity extends BaseActivity {
         registerCountFinishReceiver();
         registerNotifyUserReceiver();
 
+        loadLocalData();
+
         overridePendingTransition(R.anim.activity_output, R.anim.activity_input);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
     }
 
     @Override
@@ -104,9 +123,10 @@ public class MainActivity extends BaseActivity {
     private Button btnAlarmSet;
     private ScrollView scrollPlan;
     private TextView tvTotalTime;
-    AlarmManager alarmManager;
-    Calendar calendar = Calendar.getInstance(Locale.CHINESE);
 
+    /**
+     * 初始化控件，绑定事件
+     */
     private void initView() {
         tvHour = (TextView) findViewById(R.id.tv_hour);
         tvMinute = (TextView) findViewById(R.id.tv_minute);
@@ -128,7 +148,6 @@ public class MainActivity extends BaseActivity {
             public void onClick(View v) {
                 stratMonitorService();
                 countServiceEnable();
-
             }
 
         });
@@ -137,48 +156,7 @@ public class MainActivity extends BaseActivity {
         btnLeftPlan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final SharedPreferences preferences = getSharedPreferences("myPref", MODE_PRIVATE);  //将学习计划信息存储起来
-                final SharedPreferences.Editor editor = preferences.edit();
-                final String plan = preferences.getString("plan", "");
-
-                LayoutInflater inflater = LayoutInflater.from(MainActivity.this);    //引入自定义布局
-                View view_dialog_plan = inflater.inflate(R.layout.dialog_plan, null);
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setView(view_dialog_plan);
-                final AlertDialog dialog_plan = builder.create();  //创建一个dialog
-                dialog_plan.show();
-
-                Window dialogPlanWindow = dialog_plan.getWindow();
-                dialogPlanWindow.setWindowAnimations(R.style.dialogWindowAnim);
-                WindowManager.LayoutParams lp = dialogPlanWindow.getAttributes();
-                lp.width = WindowManager.LayoutParams.WRAP_CONTENT;
-                lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
-                dialogPlanWindow.setAttributes(lp);
-
-                edtPlan = (EditText) dialog_plan.findViewById(R.id.edt_plan);
-                edtPlan.setText(plan);
-
-                btnEdit = (ImageButton) dialog_plan.findViewById(R.id.btn_edit);
-                btnEdit.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        edtPlan.setEnabled(true);
-                    }
-                });
-
-                btnSave = (ImageButton) view_dialog_plan.findViewById(R.id.btn_save);
-                btnSave.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        edtPlan.setEnabled(false);
-                        editor.putString("plan", edtPlan.getText().toString());
-                        editor.commit();
-                        dialog_plan.dismiss();
-                    }
-                });
-
-                scrollPlan = (ScrollView) view_dialog_plan.findViewById(R.id.scroll_plan);
-                scrollPlan.getBackground().setAlpha(50);
+                switchLeftPlan();
             }
         });
 
@@ -196,6 +174,20 @@ public class MainActivity extends BaseActivity {
             }
         });
 
+        retrieveSystemWindowManager();
+    }
+
+    /**
+     * 加载本地数据，如取出SharedPreferences、SQLite等数据
+     */
+    private void loadLocalData() {
+        retrieveTotalTimeData();
+    }
+
+    /**
+     * 取回本地SharedPreferences累计时间的数据
+     */
+    private void retrieveTotalTimeData() {
         SharedPreferences preferences = getSharedPreferences("myPref2", MODE_PRIVATE);  //当前程序才能读取
         int day = preferences.getInt("day", 0);
         int hour = preferences.getInt("hour", 0);
@@ -207,7 +199,58 @@ public class MainActivity extends BaseActivity {
     }
 
     /**
-     * 右侧下拉框属性
+     * 打开或关闭左侧任务计划弹窗
+     */
+    private void switchLeftPlan() {
+        final SharedPreferences preferences = getSharedPreferences("myPref", MODE_PRIVATE);  //将学习计划信息存储起来
+        final SharedPreferences.Editor editor = preferences.edit();
+        final String plan = preferences.getString("plan", "");
+
+        LayoutInflater inflater = LayoutInflater.from(MainActivity.this);    //引入自定义布局
+        View view_dialog_plan = inflater.inflate(R.layout.dialog_plan, null);
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setView(view_dialog_plan);
+        final AlertDialog dialog_plan = builder.create();  //创建一个dialog
+        dialog_plan.show();
+
+        Window dialogPlanWindow = dialog_plan.getWindow();
+        dialogPlanWindow.setWindowAnimations(R.style.dialogWindowAnim);
+        WindowManager.LayoutParams lp = dialogPlanWindow.getAttributes();
+        lp.width = WindowManager.LayoutParams.WRAP_CONTENT;
+        lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        dialogPlanWindow.setAttributes(lp);
+
+        edtPlan = (EditText) dialog_plan.findViewById(R.id.edt_plan);
+        edtPlan.setText(plan);
+
+        btnEdit = (ImageButton) dialog_plan.findViewById(R.id.btn_edit);
+        btnEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                edtPlan.setEnabled(true);
+            }
+        });
+
+        btnSave = (ImageButton) view_dialog_plan.findViewById(R.id.btn_save);
+        btnSave.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                edtPlan.setEnabled(false);
+                editor.putString("plan", edtPlan.getText().toString());
+                editor.commit();
+                dialog_plan.dismiss();
+            }
+        });
+
+        scrollPlan = (ScrollView) view_dialog_plan.findViewById(R.id.scroll_plan);
+        scrollPlan.getBackground().setAlpha(50);
+    }
+
+    private AlarmManager alarmManager;
+    private Calendar calendar = Calendar.getInstance(Locale.CHINESE);
+
+    /**
+     * 初始化右侧设置闹钟下拉框属性
      */
     public void initmPopupWindowView_right() {
         final View customView_right = getLayoutInflater().inflate(R.layout.right_alarm, null, false);
@@ -283,9 +326,6 @@ public class MainActivity extends BaseActivity {
         });
     }
 
-
-
-
     /**
      * 注册监听用户打开的APP信息广播
      */
@@ -313,10 +353,8 @@ public class MainActivity extends BaseActivity {
         this.registerReceiver(countFinishReceiver, filter);
     }
 
-
-
     /**
-     * 设置倒计时时间
+     * 弹出时间选择器，设置倒计时时间
      */
     private void setCountTime() {
         View wheelView = LayoutInflater.from(this).inflate(R.layout.dialog_wheel_view, null);
@@ -398,10 +436,13 @@ public class MainActivity extends BaseActivity {
         //启动服务
         startService(intent);
         if (mDesktopLayout == null) {
-            createWindowManager();
-            createDesktopLayout();
-            showDesk(mDesktopLayout);
+            initDesktopParams();
+            showDeskLayout();
         }
+        /*if (petLayout == null){
+            petLayout = new PetLayout(MainActivity.this);
+            showPetWindow();
+        }*/
     }
 
     /**
@@ -415,10 +456,33 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+    private int top;
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        Rect rect = new Rect();
+        // /取得整个视图部分,注意，如果你要设置标题样式，这个必须出现在标题样式之后，否则会出错
+        getWindow().getDecorView().getWindowVisibleDisplayFrame(rect);
+        top = rect.top;//状态栏的高度，所以rect.height,rect.width分别是系统的高度的宽度
+        Log.i("top", "" + top);
+    }
+
     /**
-     * 创建悬浮窗体
+     * 首次点击屏幕的时间，用来判断双击使用
      */
-    private void createDesktopLayout() {
+    private long startTime;
+
+    /**
+     * x:屏幕的宽
+     * y：屏幕的高
+     */
+    float x, y;
+
+    /**
+     * 显示DesktopLayout
+     */
+    private void showDeskLayout() {
         mDesktopLayout = new Desklayout(this);
         mDesktopLayout.setOnTouchListener(new View.OnTouchListener() {
             float mTouchStartX;
@@ -433,7 +497,7 @@ public class MainActivity extends BaseActivity {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         // 获取相对View的坐标，即以此View左上角为原点
-                        setDesklayoutNotifyVisiable(View.GONE);
+                        setNotifyLayoutVisiable(View.GONE);
                         mTouchStartX = event.getX();
                         mTouchStartY = event.getY();
                         Log.i("startP", "startX" + mTouchStartX + "====startY" + mTouchStartY);
@@ -447,15 +511,15 @@ public class MainActivity extends BaseActivity {
                         break;
                     case MotionEvent.ACTION_MOVE:
                         // 更新浮动窗口位置参数
-                        mLayout.x = (int) (x - mTouchStartX);
-                        mLayout.y = (int) (y - mTouchStartY);
-                        mWindowManager.updateViewLayout(v, mLayout);
+                        desktopParams.x = (int) (x - mTouchStartX);
+                        desktopParams.y = (int) (y - mTouchStartY);
+                        mWindowManager.updateViewLayout(v, desktopParams);
                         break;
                     case MotionEvent.ACTION_UP:
                         // 更新浮动窗口位置参数
-                        mLayout.x = (int) (x - mTouchStartX);
-                        mLayout.y = (int) (y - mTouchStartY);
-                        mWindowManager.updateViewLayout(v, mLayout);
+                        desktopParams.x = (int) (x - mTouchStartX);
+                        desktopParams.y = (int) (y - mTouchStartY);
+                        mWindowManager.updateViewLayout(v, desktopParams);
                         // 可以在此记录最后一次的位置
                         mTouchStartX = mTouchStartY = 0;
                         break;
@@ -463,23 +527,8 @@ public class MainActivity extends BaseActivity {
                 return true;
             }
         });
-    }
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        Rect rect = new Rect();
-        // /取得整个视图部分,注意，如果你要设置标题样式，这个必须出现在标题样式之后，否则会出错
-        getWindow().getDecorView().getWindowVisibleDisplayFrame(rect);
-        top = rect.top;//状态栏的高度，所以rect.height,rect.width分别是系统的高度的宽度
-        Log.i("top", "" + top);
-    }
-
-    /**
-     * 显示DesktopLayout
-     */
-    private void showDesk(View view) {
-        mWindowManager.addView(view, mLayout);
+        retrieveSystemWindowManager();
+        mWindowManager.addView(mDesktopLayout, desktopParams);
     }
 
     /**
@@ -490,31 +539,40 @@ public class MainActivity extends BaseActivity {
     }
 
     /**
-     * 设置WindowManager
+     * 取得系统窗体
      */
-    private void createWindowManager() {
-        // 取得系统窗体
-        mWindowManager = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
-        // 窗体的布局样式
-        mLayout = new WindowManager.LayoutParams();
-        // 设置窗体显示类型——TYPE_SYSTEM_ALERT(系统提示)
-        mLayout.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
-        // 设置窗体焦点及触摸：
-        // FLAG_NOT_FOCUSABLE(不能获得按键输入焦点)
-        mLayout.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-        // 设置显示的模式
-        mLayout.format = PixelFormat.RGBA_8888;
-        // 设置对齐的方法
-        mLayout.gravity = Gravity.TOP | Gravity.LEFT;
-        // 设置窗体宽度和高度
-        mLayout.width = WindowManager.LayoutParams.WRAP_CONTENT;
-        mLayout.height = WindowManager.LayoutParams.WRAP_CONTENT;
-        //设置出现的位置
-        mLayout.x = 200;
-        mLayout.y = 300;
-        //设置出现的动画
+    private void retrieveSystemWindowManager(){
+        if (mWindowManager == null){
+            mWindowManager = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
+        }
     }
 
+    /**
+     * 初始化DesktopLayoutK控件的布局参数：desktopParams
+     */
+    private void initDesktopParams() {
+        // 窗体的布局样式
+        desktopParams = new WindowManager.LayoutParams();
+        // 设置窗体显示类型——TYPE_SYSTEM_ALERT(系统提示)
+        desktopParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
+        // 设置窗体焦点及触摸：
+        // FLAG_NOT_FOCUSABLE(不能获得按键输入焦点)
+        desktopParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+        // 设置显示的模式
+        desktopParams.format = PixelFormat.RGBA_8888;
+        // 设置对齐的方法
+        desktopParams.gravity = Gravity.TOP | Gravity.LEFT;
+        // 设置窗体宽度和高度
+        desktopParams.width = WindowManager.LayoutParams.WRAP_CONTENT;
+        desktopParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        //设置出现的位置
+        desktopParams.x = 200;
+        desktopParams.y = 300;
+    }
+
+    /**
+     * 显示气泡弹窗
+     */
     public void showNotifyWindow(){
         notifyParams = new WindowManager.LayoutParams();
         notifyParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
@@ -527,16 +585,35 @@ public class MainActivity extends BaseActivity {
         mDesktopLayout.getLocationOnScreen(location);
         Log.d(TAG,"宠物位置:"+location[0]+"  "+location[1]);
         //设置出现的位置
-        notifyParams.x = mLayout.x - mDesktopLayout.getWidth() - notifyLayout.getNotityWidth() + notifyLayout.getWidth()/6;
-        notifyParams.y = mLayout.y - mDesktopLayout.getHeight() - notifyLayout.getNotifyHeight();
+        notifyParams.x = desktopParams.x - mDesktopLayout.getWidth() - notifyLayout.getNotityWidth() + notifyLayout.getWidth()/6;
+        notifyParams.y = desktopParams.y - mDesktopLayout.getHeight() - notifyLayout.getNotifyHeight();
         Log.d(TAG,"弹窗位置:"+notifyParams.x+"  "+notifyParams.y+";弹窗大小"+notifyLayout.getNotityWidth()+" "+notifyLayout.getNotifyHeight());
         if (notifyParams.x < (notifyLayout.getWidth()/3-notifyLayout.getWidth()-20)){
             notifyLayout.setBackground(R.drawable.dialog_righttop);
-            notifyParams.x = mLayout.x;
+            notifyParams.x = desktopParams.x;
         } else {
             notifyLayout.setBackground(R.drawable.dialog_lefttop);
         }
+        retrieveSystemWindowManager();
         mWindowManager.addView(notifyLayout,notifyParams);
+    }
+
+    /**
+     * 显示桌面宠物
+     */
+    public void showPetWindow(){
+        WindowManager.LayoutParams petParams  = new WindowManager.LayoutParams();
+        petParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
+        petParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+        petParams.format = PixelFormat.RGBA_8888;
+        petParams.width = WindowManager.LayoutParams.WRAP_CONTENT;
+        petParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        petParams.gravity = Gravity.TOP | Gravity.LEFT;
+        petParams.x = ScreenUtils.getScreenWidth(MainActivity.this) / 2;
+        petParams.y = ScreenUtils.getScreenHeight(MainActivity.this) / 2;
+
+        retrieveSystemWindowManager();
+        mWindowManager.addView(petLayout,petParams);
     }
 
     @Override    //左下角菜单
@@ -597,6 +674,8 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+    private boolean isSetedCountTime = false;
+
     /**
      * 设置时间选择的使能
      *
@@ -606,6 +685,10 @@ public class MainActivity extends BaseActivity {
         isSetedCountTime = set;
     }
 
+    /**
+     * 返回时间选择的使能
+     * @return 若已设置完时间返回True，否则返回False
+     */
     public boolean getIsSetedCountTime() {
         return isSetedCountTime;
     }
@@ -628,13 +711,13 @@ public class MainActivity extends BaseActivity {
      * @param vis
      * @see NotifyLayout#setNotifyVisiable(int)
      */
-    public void setDesklayoutNotifyVisiable(int vis) {
+    public void setNotifyLayoutVisiable(int vis) {
         if (notifyLayout == null) {
             notifyLayout = new NotifyLayout(MainActivity.this);
             notifyLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    setDesklayoutNotifyVisiable(View.GONE);
+                    setNotifyLayoutVisiable(View.GONE);
                 }
             });
         }
@@ -659,16 +742,26 @@ public class MainActivity extends BaseActivity {
      * @param text
      * @see NotifyLayout#setTvNotifyText(CharSequence)
      */
-    public void setDesklayoutNotifyText(CharSequence text) {
+    public void setNotifyLayoutText(CharSequence text) {
         if (notifyLayout != null) {
             notifyLayout.setTvNotifyText(text);
         }
     }
 
+    private boolean isClickStart = false;
+
+    /**
+     * 返回是否点击启动
+     * @return 若点击启动，返回true,否则返回false
+     */
     public boolean isClickStart() {
         return isClickStart;
     }
 
+    /**
+     * 设置是否点击启动状态
+     * @param clickStart
+     */
     public void setClickStart(boolean clickStart) {
         isClickStart = clickStart;
     }
@@ -681,7 +774,6 @@ public class MainActivity extends BaseActivity {
             tvTotalTime.setText(text);
         }
     }
-
 
     /**
      * 关闭其他应用，实际上并没有关闭应用，只是模拟点击Home键，将屏幕退回到主界面，以此模拟实现关闭效果
