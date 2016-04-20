@@ -49,7 +49,6 @@ import com.iwin.istudy.util.ScreenUtils;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Timer;
 
 public class MainActivity extends BaseActivity {
     private static final String TAG = "MainActivity";
@@ -442,6 +441,7 @@ public class MainActivity extends BaseActivity {
             initPetParams();
             showPetWindow();
         }
+        petLayout.setPetAction(PetLayout.STUDY);
     }
 
     /**
@@ -490,7 +490,7 @@ public class MainActivity extends BaseActivity {
     /**
      * 显示气泡弹窗
      */
-    public void showNotifyWindow() {
+    private void showNotifyWindow() {
         notifyParams = new WindowManager.LayoutParams();
         notifyParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
         notifyParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
@@ -586,7 +586,7 @@ public class MainActivity extends BaseActivity {
                         // 双击的间隔在 500ms以下
                         if (end < 500) {
                             Log.i("info", "!!!");
-                            petLayout.setRandomBackground();
+                            setPetAction(PetLayout.RANDOM);
                         }
                         startTime = System.currentTimeMillis();
                         break;
@@ -755,6 +755,12 @@ public class MainActivity extends BaseActivity {
     public void setNotifyLayoutText(CharSequence text) {
         if (notifyLayout != null) {
             notifyLayout.setTvNotifyText(text);
+        }
+    }
+
+    public void setPetAction(int action){
+        if (petLayout != null){
+            petLayout.setPetAction(action);
         }
     }
 

@@ -9,6 +9,7 @@ import android.view.View;
 import com.iwin.istudy.R;
 import com.iwin.istudy.activity.MainActivity;
 import com.iwin.istudy.entity.AppInfo;
+import com.iwin.istudy.ui.PetLayout;
 
 public class NotifyUserReceiver extends BroadcastReceiver {
     private String TAG = "NotifyUserReceiver";
@@ -30,8 +31,7 @@ public class NotifyUserReceiver extends BroadcastReceiver {
             if ((!app.isMyApp()) && (!app.isSystemApp()) && (app.getAppName() != null) ){
                 Log.d(TAG,"调用Home");
                 ((MainActivity) context).closeApp(app.getAppPackage());
-                ((MainActivity) context).setNotifyLayoutVisiable(View.VISIBLE);
-                ((MainActivity) context).setNotifyLayoutText("你打开了："+app.getAppName());
+                ((MainActivity) context).setPetAction(PetLayout.WARNING);
             }
             Log.d(TAG,"appName:"+app.getAppName());
         }else if (isClickStart){
