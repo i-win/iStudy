@@ -1,21 +1,33 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        iwin {
+            keyAlias 'Iwin'
+            keyPassword '402403404'
+            storeFile file('C:/Users/sxq/.android/iwin.jks')
+            storePassword '102037'
+        }
+    }
     compileSdkVersion 23
     buildToolsVersion "23.0.1"
-
     defaultConfig {
         applicationId "com.iwin.istudy"
         minSdkVersion 16
         targetSdkVersion 23
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
+        signingConfig signingConfigs.iwin
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.iwin
+            zipAlignEnabled true
         }
+    }
+    productFlavors {
     }
 }
 

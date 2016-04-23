@@ -820,5 +820,4 @@ public class MainActivity extends BaseActivity {
         (getApplicationContext()).startActivity(intent);
         Log.d(TAG, "关闭应用:" + packageName);
     }
-
 }

@@ -49,6 +49,11 @@ public class CountDownService extends Service {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
     /**
      * 启动倒计时
      */
