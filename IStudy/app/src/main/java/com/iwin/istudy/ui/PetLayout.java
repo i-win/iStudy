@@ -53,6 +53,7 @@ public class PetLayout extends LinearLayout {
      */
     public void setPetAttr(PetAttributes petAttr){
         this.petAttr = petAttr;
+        setDeauftAction();
     }
     /**
      * 设置桌面宠物的倒计时显示的时间
