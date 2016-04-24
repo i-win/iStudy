@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="@drawable/background_alarm"
+    android:background="@drawable/shape_circle"
     android:gravity="center"
     android:orientation="vertical">
 
@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:background="#00000100"
         android:text="设置提醒"
-        android:textColor="#676666"
+        android:textColor="#4d4d4d"
         android:textSize="20dp" />
 
     <Button
@@ -22,7 +22,7 @@
         android:layout_height="wrap_content"
         android:background="#00000100"
         android:text="取消提醒"
-        android:textColor="#676666"
+        android:textColor="#4d4d4d"
         android:textSize="20dp" />
 
 </LinearLayout>

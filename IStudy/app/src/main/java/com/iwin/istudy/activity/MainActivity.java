@@ -353,7 +353,7 @@ public class MainActivity extends BaseActivity {
     public void initmPopupWindowView_right() {
         final View customView_right = getLayoutInflater().inflate(R.layout.right_alarm, null, false);
         // 创建PopupWindow实例,200,150分别是宽度和高度
-        customView_right.getBackground().setAlpha(150);
+        customView_right.getBackground().setAlpha(200);
         popupWindow_right = new PopupWindow(customView_right, RadioGroup.LayoutParams.WRAP_CONTENT, RadioGroup.LayoutParams.WRAP_CONTENT);
         // 设置动画效果 [R.style.AnimationFade 是自己事先定义好的]
         popupWindow_right.setAnimationStyle(R.style.AnimationFade_right);

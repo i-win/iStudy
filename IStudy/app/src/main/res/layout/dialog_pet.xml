@@ -18,9 +18,10 @@
             android:gravity="center">
 
             <TextView
+                android:background="@drawable/shape_circle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="宠物选择"
+                android:text=" 宠物选择 "
                 android:textColor="#040404"
                 android:textSize="25dp" />
         </LinearLayout>
