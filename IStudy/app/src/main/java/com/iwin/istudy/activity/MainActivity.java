@@ -35,6 +35,7 @@ import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.iwin.istudy.R;
+import com.iwin.istudy.engine.SquirrelPet;
 import com.iwin.istudy.engine.TimerManager;
 import com.iwin.istudy.receiver.CountDownFinishReceiver;
 import com.iwin.istudy.receiver.NotifyUserReceiver;
@@ -437,7 +438,7 @@ public class MainActivity extends BaseActivity {
         //启动服务
         startService(intent);
         if (petLayout == null) {
-            petLayout = new PetLayout(MainActivity.this);
+            petLayout = PetLayout.getInstance(MainActivity.this);
             initPetParams();
             showPetWindow();
         }
@@ -540,7 +541,11 @@ public class MainActivity extends BaseActivity {
         Log.d(TAG, "弹窗位置:" + notifyParams.x + "  " + notifyParams.y );
         Log.d(TAG, "弹窗大小" + notifyLayout.getNotityWidth() + " * " + notifyLayout.getNotifyHeight());
         retrieveSystemWindowManager();
-        mWindowManager.addView(notifyLayout, notifyParams);
+        try {
+            mWindowManager.addView(notifyLayout, notifyParams);
+        }catch (IllegalStateException e){
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -610,7 +615,11 @@ public class MainActivity extends BaseActivity {
         });
 
         retrieveSystemWindowManager();
-        mWindowManager.addView(petLayout, petParams);
+        try {
+            mWindowManager.addView(petLayout, petParams);
+        }catch (IllegalStateException e){
+            e.printStackTrace();
+        }
     }
 
     public void closeWindowLayout(View view){
@@ -733,7 +742,11 @@ public class MainActivity extends BaseActivity {
         }
         if (vis == View.GONE) {
             if (notifyLayout.getNotifyVisiable() == View.VISIBLE) {
-                mWindowManager.removeView(notifyLayout);
+                try {
+                    mWindowManager.removeView(notifyLayout);
+                }catch (IllegalStateException e){
+                    e.printStackTrace();
+                }
                 notifyLayout.setNotifyVisiable(View.GONE);
             }
         } else if (vis == View.VISIBLE) {

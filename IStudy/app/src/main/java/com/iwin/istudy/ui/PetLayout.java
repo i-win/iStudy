@@ -10,10 +10,11 @@ import android.widget.TextView;
 
 import com.iwin.istudy.R;
 import com.iwin.istudy.activity.MainActivity;
+import com.iwin.istudy.engine.XbDogPet;
+import com.iwin.istudy.entity.Pet;
+import com.iwin.istudy.interfaces.PetAttributes;
 
 import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import pl.droidsonroids.gif.GifImageView;
 
@@ -24,9 +25,11 @@ public class PetLayout extends LinearLayout {
 
     private GifImageView imgPet;
     private TextView tvPetTime;
-    private Context context;
+    private static Context context;
+    private static PetLayout instance;
+    private PetAttributes petAttr;
 
-    public PetLayout(Context context) {
+    private PetLayout(Context context) {
         super(context);
         this.context = context;
         View view = LayoutInflater.from(context).inflate(R.layout.window_pet, null);
@@ -36,6 +39,21 @@ public class PetLayout extends LinearLayout {
         this.addView(view);
     }
 
+    public static PetLayout getInstance(Context context){
+        if (instance == null){
+            instance = new PetLayout(context);
+        }
+        return instance;
+    }
+
+    private static final PetAttributes DEFAULT_PETATTR = new XbDogPet();
+    /**
+     * 选择宠物种类
+     * @param petAttr
+     */
+    public void setPetAttr(PetAttributes petAttr){
+        this.petAttr = petAttr;
+    }
     /**
      * 设置桌面宠物的倒计时显示的时间
      *
@@ -45,43 +63,6 @@ public class PetLayout extends LinearLayout {
         if (tvPetTime != null) {
             tvPetTime.setText(time);
         }
-    }
-
-    /**
-     * 所有辛巴狗的动作
-     */
-    private static final int[] BACKGROUND_RES_ID = {
-            //拜托               奔跑嗨              崇拜              高兴转圈
-            R.drawable.xbdog0, R.drawable.xbdog1, R.drawable.xbdog2, R.drawable.xbdog3,
-            //流口水               弹琴              挥刀无奈            微笑
-            R.drawable.xbdog4, R.drawable.xbdog5, R.drawable.xbdog6, R.drawable.xbdog7,
-            //哭死                  人呢              被雷打             偷笑
-            R.drawable.xbdog8, R.drawable.xbdog9, R.drawable.xbdog10, R.drawable.xbdog11,
-            //睡觉                吃药              赞                   撒娇
-            R.drawable.xbdog12, R.drawable.xbdog13, R.drawable.xbdog14, R.drawable.xbdog15,
-    };
-
-    private static final int DEFAULT_BACKGROUND = R.drawable.xbdog12;
-
-    /**
-     * 指定几种特别的动作
-     */
-    public static final int ACTION_PLEASE = BACKGROUND_RES_ID[0];
-    public static final int ACTION_TITTER = BACKGROUND_RES_ID[11];
-    public static final int ACTION_ZAN = BACKGROUND_RES_ID[14];
-    public static final int ACTION_HAPPY = BACKGROUND_RES_ID[3];
-    public static final int ACTION_PLAYING = BACKGROUND_RES_ID[5];
-    public static final int ACTION_COQUETRY = BACKGROUND_RES_ID[15];
-
-    /**
-     * 获得随机的辛巴狗动作
-     *
-     * @return 返回辛巴狗动作的资源ID
-     */
-    public int getRandomBackgroundRes() {
-        Random random = new Random();
-        int res = random.nextInt(16);
-        return BACKGROUND_RES_ID[res];
     }
 
     /**
@@ -107,8 +88,8 @@ public class PetLayout extends LinearLayout {
     /**
      * 随机设置宠物动作,6s后返回默认的动作
      */
-    private void setRandomBackground() {
-        int res = getRandomBackgroundRes();
+    private void setRandomAction() {
+        int res = petAttr.getRandomAction();
         setImgPetBackground(res);
 
         handle.removeMessages(DEFAULT);
@@ -118,63 +99,49 @@ public class PetLayout extends LinearLayout {
     /**
      * 设置默认的宠物动作
      */
-    private void setDeauftBackground() {
-        setImgPetBackground(DEFAULT_BACKGROUND);
+    private void setDeauftAction() {
+        Pet pet = petAttr.getDeauft();
+        setImgPetBackground(pet.getAction());
     }
 
     /**
      * 设置学习的动作
      */
     private void setStudyAction(){
-        setImgPetBackground(ACTION_PLAYING);
+        Pet pet = petAttr.getStudy();
+        setImgPetBackground(pet.getAction());
         ((MainActivity)context).setNotifyLayoutVisiable(VISIBLE);
-        ((MainActivity)context).setNotifyLayoutText("开始学习啦~~非系统App已经被俺禁用了,好好学习吧");
+        ((MainActivity)context).setNotifyLayoutText(pet.getSaying());
     }
 
     /**
      * 设置休息的动作
      */
     private void setRestAction(){
-        setDeauftBackground();
+        Pet pet = petAttr.getRest();
+        setImgPetBackground(pet.getAction());
         ((MainActivity)context).setNotifyLayoutVisiable(VISIBLE);
-        ((MainActivity)context).setNotifyLayoutText("俺先睡会~~不要偷偷玩手机哦，俺会发现的");
+        ((MainActivity)context).setNotifyLayoutText(pet.getSaying());
     }
 
     /**
      * 设置温馨提示的动作
      */
     private void setWarningAction(){
-        Random random = new Random();
-        int action = random.nextInt(3);
-        if (action == 0){
-            setImgPetBackground(ACTION_PLEASE);
-            ((MainActivity)context).setNotifyLayoutVisiable(VISIBLE);
-            ((MainActivity)context).setNotifyLayoutText("不要玩手机啦~~好好学习嘛");
-        }else if (action == 1){
-            setImgPetBackground(ACTION_TITTER);
-            ((MainActivity)context).setNotifyLayoutVisiable(VISIBLE);
-            ((MainActivity)context).setNotifyLayoutText("xixi~~俺看着你，看你怎么玩手机");
-        } else  if (action == 2){
-            setImgPetBackground(ACTION_COQUETRY);
-            ((MainActivity)context).setNotifyLayoutVisiable(VISIBLE);
-            ((MainActivity)context).setNotifyLayoutText("不要再玩手机啦~~");
-        }
+        Pet pet = petAttr.getWarning();
+        setImgPetBackground(pet.getAction());
+        ((MainActivity)context).setNotifyLayoutVisiable(VISIBLE);
+        ((MainActivity)context).setNotifyLayoutText(pet.getSaying());
     }
 
     /**
      * 设置学习完成的动作
      */
     private void setFinishAction(){
-        Random random = new Random();
-        if (random.nextInt(2) == 0){
-            setImgPetBackground(ACTION_HAPPY);
-            ((MainActivity)context).setNotifyLayoutVisiable(VISIBLE);
-            ((MainActivity)context).setNotifyLayoutText("lala~~辛苦了，俺允许你玩手机了");
-        }else {
-            setImgPetBackground(ACTION_ZAN);
-            ((MainActivity)context).setNotifyLayoutVisiable(VISIBLE);
-            ((MainActivity)context).setNotifyLayoutText("zan~~俺越来越崇拜你了");
-        }
+        Pet pet = petAttr.getFinish();
+        setImgPetBackground(pet.getAction());
+        ((MainActivity)context).setNotifyLayoutVisiable(VISIBLE);
+        ((MainActivity)context).setNotifyLayoutText(pet.getSaying());
     }
 
     /**
@@ -182,6 +149,9 @@ public class PetLayout extends LinearLayout {
      * @param action
      */
     public void setPetAction(int action){
+        if (petAttr == null){
+            petAttr = DEFAULT_PETATTR;
+        }
         switch (action){
             case RANDOM:
                 handle.sendEmptyMessage(RANDOM);
@@ -194,7 +164,7 @@ public class PetLayout extends LinearLayout {
             case STUDY:
                 handle.sendEmptyMessage(STUDY);
                 handle.removeMessages(REST);
-                handle.sendEmptyMessageDelayed(REST,6000);
+                handle.sendEmptyMessageDelayed(REST,8000);
                 break;
             case REST:
                 handle.sendEmptyMessage(REST);
@@ -203,7 +173,7 @@ public class PetLayout extends LinearLayout {
             case WARNING:
                 handle.sendEmptyMessage(WARNING);
                 handle.removeMessages(REST);
-                handle.sendEmptyMessageDelayed(REST,8000);
+                handle.sendEmptyMessageDelayed(REST,10000);
                 break;
 
             case FINISH:
@@ -222,11 +192,11 @@ public class PetLayout extends LinearLayout {
         public void handleMessage(Message msg) {
             switch (msg.what){
                 case RANDOM:
-                    setRandomBackground();
+                    setRandomAction();
                     break;
 
                 case DEFAULT:
-                    setDeauftBackground();
+                    setDeauftAction();
                     break;
 
                 case STUDY:
