@@ -8,31 +8,40 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.v4.view.PagerTitleStrip;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.GridView;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.RadioGroup;
 import android.widget.ScrollView;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.iwin.istudy.R;
 import com.iwin.istudy.engine.TimerManager;
@@ -45,10 +54,17 @@ import com.iwin.istudy.ui.NotifyLayout;
 import com.iwin.istudy.ui.PetLayout;
 import com.iwin.istudy.ui.WheelView;
 import com.iwin.istudy.util.ScreenUtils;
+import com.kyleduo.switchbutton.SwitchButton;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+
+import pl.droidsonroids.gif.GifImageView;
 
 public class MainActivity extends BaseActivity {
     private static final String TAG = "MainActivity";
@@ -118,10 +134,17 @@ public class MainActivity extends BaseActivity {
     private EditText edtPlan;
     private ImageButton btnEdit;
     private ImageButton btnSave;
+    private GifImageView imgPetPick;
     private ImageButton btnAlarm;
     private Button btnAlarmSet;
     private ScrollView scrollPlan;
     private TextView tvTotalTime;
+    private SwitchButton swtbtn_pet;
+    private GridView gridView_pet;
+    private List<Map<String, Object>> list_pet;
+    private int[] pic_pet = {R.drawable.xbdog0, R.drawable.xbdog1, R.drawable.xbdog2};
+    private SimpleAdapter adapter_pet;
+    private Button btnPetCommit;
 
     /**
      * 初始化控件，绑定事件
@@ -145,7 +168,7 @@ public class MainActivity extends BaseActivity {
         btnStartCount.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!isZeroTime()){
+                if (!isZeroTime()) {
                     stratMonitorService();
                     countServiceEnable();
                 }
@@ -158,6 +181,14 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
                 switchLeftPlan();
+            }
+        });
+
+        imgPetPick = (GifImageView) findViewById(R.id.img_pet_pick);
+        imgPetPick.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showDialogPet();
             }
         });
 
@@ -215,16 +246,16 @@ public class MainActivity extends BaseActivity {
         dialog_plan.show();
 
         Window dialogPlanWindow = dialog_plan.getWindow();
-        dialogPlanWindow.setWindowAnimations(R.style.dialogWindowAnim);
+        dialogPlanWindow.setWindowAnimations(R.style.dialogPlanAnim);
         WindowManager.LayoutParams lp = dialogPlanWindow.getAttributes();
         lp.width = WindowManager.LayoutParams.WRAP_CONTENT;
         lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
         dialogPlanWindow.setAttributes(lp);
 
-        edtPlan = (EditText) dialog_plan.findViewById(R.id.edt_plan);
+        edtPlan = (EditText) view_dialog_plan.findViewById(R.id.edt_plan);
         edtPlan.setText(plan);
 
-        btnEdit = (ImageButton) dialog_plan.findViewById(R.id.btn_edit);
+        btnEdit = (ImageButton) view_dialog_plan.findViewById(R.id.btn_edit);
         btnEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -247,6 +278,72 @@ public class MainActivity extends BaseActivity {
         scrollPlan.getBackground().setAlpha(50);
     }
 
+    /**
+     * 初始化右侧设置宠物下拉框属性
+     */
+    public void showDialogPet() {
+        LayoutInflater inflater = LayoutInflater.from(MainActivity.this);    //引入自定义布局
+        View view_pet_pick = inflater.inflate(R.layout.dialog_pet, null);
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setView(view_pet_pick);
+        final AlertDialog dialog_pet = builder.create();  //创建一个dialog
+        dialog_pet.show();
+
+        Window dialogPlanWindow = dialog_pet.getWindow();
+        dialogPlanWindow.setWindowAnimations(R.style.dialogPetAnim);
+        WindowManager.LayoutParams lp = dialogPlanWindow.getAttributes();
+        lp.width = WindowManager.LayoutParams.WRAP_CONTENT;
+        lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        dialogPlanWindow.setAttributes(lp);
+
+        swtbtn_pet = (SwitchButton) view_pet_pick.findViewById(R.id.swtbtn_pet);
+        swtbtn_pet.setThumbSize(40f,40f);
+        swtbtn_pet.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    //待改----------------------------------------------------------------
+                    petLayout = new PetLayout(MainActivity.this);
+                    initPetParams();
+                    showPetWindow();
+                } else {
+                    closeWindowLayout(petLayout);
+                }
+            }
+        });
+
+        gridView_pet = (GridView) dialog_pet.findViewById(R.id.gridview_pet);
+        gridView_pet.getBackground().setAlpha(70);
+        list_pet = new ArrayList<Map<String, Object>>();
+        getPetData();
+        adapter_pet = new SimpleAdapter(this, getPetData(), R.layout.pet_pick, new String[]{"image"}, new int[]{R.id.image_pet});
+        gridView_pet.setAdapter(adapter_pet);
+        gridView_pet.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Toast.makeText(MainActivity.this, "选择了宠物" + position, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        btnPetCommit = (Button) dialog_pet.findViewById(R.id.btn_pet_commit);
+        btnPetCommit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+
+            }
+        });
+    }
+
+    public List<Map<String, Object>> getPetData() {
+        for (int i = 0; i < pic_pet.length; i++) {
+            Map<String, Object> map = new HashMap<String, Object>();
+            map.put("image", pic_pet[i]);
+            list_pet.add(map);
+        }
+        return list_pet;
+    }
+
     private AlarmManager alarmManager;
     private Calendar calendar = Calendar.getInstance(Locale.CHINESE);
 
@@ -256,9 +353,14 @@ public class MainActivity extends BaseActivity {
     public void initmPopupWindowView_right() {
         final View customView_right = getLayoutInflater().inflate(R.layout.right_alarm, null, false);
         // 创建PopupWindow实例,200,150分别是宽度和高度
+        customView_right.getBackground().setAlpha(150);
         popupWindow_right = new PopupWindow(customView_right, RadioGroup.LayoutParams.WRAP_CONTENT, RadioGroup.LayoutParams.WRAP_CONTENT);
         // 设置动画效果 [R.style.AnimationFade 是自己事先定义好的]
         popupWindow_right.setAnimationStyle(R.style.AnimationFade_right);
+
+        //点击空白处窗口退出
+        popupWindow_right.setFocusable(true);
+        popupWindow_right.setBackgroundDrawable(new BitmapDrawable());
 
         SharedPreferences preferences = getSharedPreferences("myPref1", MODE_PRIVATE);  //将学习计划信息存储起来
         final SharedPreferences.Editor editor1 = preferences.edit();
@@ -504,15 +606,15 @@ public class MainActivity extends BaseActivity {
         petLayout.getLocationOnScreen(location);
         //petlayout控件所在的区域(屏幕分成3行2列）
         int[] area = ScreenUtils.inAreaOfScreen(MainActivity.this,
-                (location[0]+(petLayout.getWidth()/2)),location[1],2,3);
+                (location[0] + (petLayout.getWidth() / 2)), location[1], 2, 3);
         Log.d(TAG, "宠物位置:" + location[0] + "  " + location[1]);
-        Log.d(TAG, "宠物位置在第" + area[0] + "行，第" + area[1]+"列；");
+        Log.d(TAG, "宠物位置在第" + area[0] + "行，第" + area[1] + "列；");
         Log.d(TAG, "宠物大小:" + petLayout.getWidth() + " * " + petLayout.getHeight());
 
         //设置出现的位置
-        if (area[1] == 1 ){
+        if (area[1] == 1) {
             //petlayout在第一列时
-            if (area[0] > 1){
+            if (area[0] > 1) {
                 //petlayout在第一行以下时
                 notifyLayout.setBackground(R.drawable.dialog_righttop);
                 notifyParams.x = location[0] + petLayout.getWidth();
@@ -521,11 +623,11 @@ public class MainActivity extends BaseActivity {
                 //petlayout在第一行时
                 notifyLayout.setBackground(R.drawable.dialog_rightbottom);
                 notifyParams.x = location[0] + petLayout.getWidth();
-                notifyParams.y = location[1] + petLayout.getHeight()/2;
+                notifyParams.y = location[1] + petLayout.getHeight() / 2;
             }
         } else {
             //petlayout在第二列时
-            if (area[0] > 1){
+            if (area[0] > 1) {
                 //petlayout在第一行以下时
                 notifyLayout.setBackground(R.drawable.dialog_lefttop);
                 notifyParams.x = location[0] - notifyLayout.getNotityWidth();
@@ -534,10 +636,10 @@ public class MainActivity extends BaseActivity {
                 //petlayout在第一行时
                 notifyLayout.setBackground(R.drawable.dialog_leftbottom);
                 notifyParams.x = location[0] - notifyLayout.getNotityWidth();
-                notifyParams.y = location[1] + petLayout.getHeight()/2;
+                notifyParams.y = location[1] + petLayout.getHeight() / 2;
             }
         }
-        Log.d(TAG, "弹窗位置:" + notifyParams.x + "  " + notifyParams.y );
+        Log.d(TAG, "弹窗位置:" + notifyParams.x + "  " + notifyParams.y);
         Log.d(TAG, "弹窗大小" + notifyLayout.getNotityWidth() + " * " + notifyLayout.getNotifyHeight());
         retrieveSystemWindowManager();
         mWindowManager.addView(notifyLayout, notifyParams);
@@ -545,7 +647,6 @@ public class MainActivity extends BaseActivity {
 
     /**
      * 初始化桌面宠物的布局参数
-     *
      */
     public void initPetParams() {
         petParams = new WindowManager.LayoutParams();
@@ -562,12 +663,12 @@ public class MainActivity extends BaseActivity {
 
     /**
      * 显示桌面宠物
-     *
      */
     public void showPetWindow() {
         petLayout.setOnTouchListener(new View.OnTouchListener() {
             float mTouchStartX;
             float mTouchStartY;
+
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 // 获取相对屏幕的坐标，即以屏幕左上角为原点
@@ -613,21 +714,16 @@ public class MainActivity extends BaseActivity {
         mWindowManager.addView(petLayout, petParams);
     }
 
-    public void closeWindowLayout(View view){
+    public void closeWindowLayout(View view) {
         retrieveSystemWindowManager();
         try {
             mWindowManager.removeView(view);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-            Log.e(TAG,"关闭悬浮窗失败");
+            Log.e(TAG, "关闭悬浮窗失败");
         }
     }
 
-    @Override    //左下角菜单
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.optionsmenu, menu);
-        return true;
-    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -758,20 +854,21 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    public void setPetAction(int action){
-        if (petLayout != null){
+    public void setPetAction(int action) {
+        if (petLayout != null) {
             petLayout.setPetAction(action);
         }
     }
 
     /**
      * 判断设置的倒计时时间是否为0
+     *
      * @return 为0返回true
      */
-    public boolean isZeroTime(){
+    public boolean isZeroTime() {
         String time = tvHour.getText().toString()
                 + tvMinute.getText().toString() + tvSecond.getText().toString();
-        if (time.equals("000000")){
+        if (time.equals("000000")) {
             return true;
         } else {
             return false;
