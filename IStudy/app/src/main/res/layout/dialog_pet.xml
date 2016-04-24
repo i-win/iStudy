@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#dad9d9"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="宠物选择"
+                android:textColor="#040404"
+                android:textSize="25dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="4"
+            android:gravity="center">
+
+            <com.kyleduo.switchbutton.SwitchButton
+                android:id="@+id/swtbtn_pet"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <GridView
+        android:background="@drawable/background_pet_pick"
+        android:id="@+id/gridview_pet"
+        android:numColumns="4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:listSelector="#a7e6fd"></GridView>
+    <Button
+        android:text="确定"
+        android:textSize="20dp"
+        android:id="@+id/btn_pet_commit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+</LinearLayout>

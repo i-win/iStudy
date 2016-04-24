@@ -2,28 +2,27 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
+    android:background="@drawable/background_alarm"
     android:gravity="center"
-    android:background="@drawable/background_right_alarm">
+    android:orientation="vertical">
+
 
     <Button
         android:id="@+id/btn_alarm_set"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="设置提醒"
-        android:background="#10000100"
-        android:textColor="#040404"
-        android:textSize="20dp" />
-    <TextView
-        android:textSize="7dp"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:background="#00000100"
+        android:text="设置提醒"
+        android:textColor="#676666"
+        android:textSize="20dp" />
+
     <Button
         android:id="@+id/btn_alarm_cancle"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="#00000100"
         android:text="取消提醒"
-        android:background="#10000100"
-        android:textColor="#040404"
+        android:textColor="#676666"
         android:textSize="20dp" />
+
 </LinearLayout>

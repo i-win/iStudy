@@ -13,14 +13,21 @@
     </style>
 
     <style name="AnimationFade_right">
-        <!-- PopupWindow右弹出的效果 -->
-        <item name="android:windowEnterAnimation">@anim/right_pop_input</item>
-        <item name="android:windowExitAnimation">@anim/right_pop_output</item>
+        <!-- PopupWindow闹钟右弹出的效果 -->
+        <item name="android:windowEnterAnimation">@anim/alarm_pop_input</item>
+        <item name="android:windowExitAnimation">@anim/alarm_pop_output</item>
     </style>
 
-    <style name="dialogWindowAnim" parent="android:Animation" mce_bogus="1">
+    <style name="dialogPlanAnim" parent="android:Animation" mce_bogus="1">
         <!--计划弹出框动画-->
-        <item name="android:windowEnterAnimation">@anim/left_pop_input</item>
-        <item name="android:windowExitAnimation">@anim/left_pop_output</item>
+        <item name="android:windowEnterAnimation">@anim/plan_pop_input</item>
+        <item name="android:windowExitAnimation">@anim/plan_pop_output</item>
     </style>
+
+    <style name="dialogPetAnim" parent="android:Animation" mce_bogus="1">
+        <!--宠物选择弹出框动画-->
+        <item name="android:windowEnterAnimation">@anim/pet_pop_input</item>
+        <item name="android:windowExitAnimation">@anim/pet_pop_output</item>
+    </style>
+
 </resources>
