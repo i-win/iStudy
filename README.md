@@ -4,7 +4,9 @@
 
 
 ##DownLoad  
-[istudy.apk](http://www.dasusu.cn/download/istudy_1.0.apk)
+[istudy.apk](http://www.dasusu.cn/download/istudy_1.0.1.apk)  
+
+[iStudy网站介绍](http://www.dasusu.cn)  
 
 ##Update log  
 
