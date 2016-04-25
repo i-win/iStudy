@@ -8,14 +8,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.support.v4.view.PagerTitleStrip;
-import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.Gravity;
@@ -32,7 +29,6 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.RadioGroup;
@@ -41,10 +37,11 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import com.iwin.istudy.R;
+import com.iwin.istudy.engine.SquirrelPet;
 import com.iwin.istudy.engine.TimerManager;
+import com.iwin.istudy.engine.XbDogPet;
 import com.iwin.istudy.receiver.CountDownFinishReceiver;
 import com.iwin.istudy.receiver.NotifyUserReceiver;
 import com.iwin.istudy.receiver.UpdateTimerReceiver;
@@ -139,12 +136,6 @@ public class MainActivity extends BaseActivity {
     private Button btnAlarmSet;
     private ScrollView scrollPlan;
     private TextView tvTotalTime;
-    private SwitchButton swtbtn_pet;
-    private GridView gridView_pet;
-    private List<Map<String, Object>> list_pet;
-    private int[] pic_pet = {R.drawable.xbdog0, R.drawable.xbdog1, R.drawable.xbdog2};
-    private SimpleAdapter adapter_pet;
-    private Button btnPetCommit;
 
     /**
      * 初始化控件，绑定事件
@@ -278,17 +269,23 @@ public class MainActivity extends BaseActivity {
         scrollPlan.getBackground().setAlpha(50);
     }
 
+    private SwitchButton swtbtn_pet;
+    private GridView gridView_pet;
+    private Button btnPetCommit;
+
+    int selectPosition;
     /**
-     * 初始化右侧设置宠物下拉框属性
+     * 初始化设置宠物下拉框属性
      */
     public void showDialogPet() {
+        //初始化弹窗控件
         LayoutInflater inflater = LayoutInflater.from(MainActivity.this);    //引入自定义布局
         View view_pet_pick = inflater.inflate(R.layout.dialog_pet, null);
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setView(view_pet_pick);
         final AlertDialog dialog_pet = builder.create();  //创建一个dialog
         dialog_pet.show();
-
+        //初始化弹窗布局参数
         Window dialogPlanWindow = dialog_pet.getWindow();
         dialogPlanWindow.setWindowAnimations(R.style.dialogPetAnim);
         WindowManager.LayoutParams lp = dialogPlanWindow.getAttributes();
@@ -298,30 +295,43 @@ public class MainActivity extends BaseActivity {
 
         swtbtn_pet = (SwitchButton) view_pet_pick.findViewById(R.id.swtbtn_pet);
         swtbtn_pet.setThumbSize(40f,40f);
+        swtbtn_pet.setChecked(isPetVisiable());
         swtbtn_pet.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    //待改----------------------------------------------------------------
-                    petLayout = new PetLayout(MainActivity.this);
-                    initPetParams();
+                    if (petLayout == null){
+                        petLayout = PetLayout.getInstance(MainActivity.this);
+                    }
+                    if (petParams == null){
+                        initPetParams();
+                    }
                     showPetWindow();
                 } else {
                     closeWindowLayout(petLayout);
                 }
             }
         });
-
+        //设置弹窗数据
         gridView_pet = (GridView) dialog_pet.findViewById(R.id.gridview_pet);
+        final List<Map<String,Object>> petList = new ArrayList<>();
+        Map<String,Object> map = new HashMap<>();
+        map.put("image",R.drawable.xbdog1);
+        petList.add(map);
+        map = new HashMap<>();
+        map.put("image",R.drawable.squirrel02);
+        petList.add(map);
+        SimpleAdapter adapter_pet = new SimpleAdapter(this, petList,
+                R.layout.pet_pick, new String[]{"image"}, new int[]{R.id.image_pet});
         gridView_pet.getBackground().setAlpha(70);
-        list_pet = new ArrayList<Map<String, Object>>();
-        getPetData();
-        adapter_pet = new SimpleAdapter(this, getPetData(), R.layout.pet_pick, new String[]{"image"}, new int[]{R.id.image_pet});
         gridView_pet.setAdapter(adapter_pet);
+
+
         gridView_pet.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(MainActivity.this, "选择了宠物" + position, Toast.LENGTH_SHORT).show();
+                selectPosition = position;
+//                Toast.makeText(MainActivity.this, "选择了宠物" + position, Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -329,19 +339,19 @@ public class MainActivity extends BaseActivity {
         btnPetCommit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-
+                if (petLayout == null){
+                    petLayout = PetLayout.getInstance(MainActivity.this);
+                }
+                if (selectPosition == 0){
+                    petLayout.setPetAttr(new XbDogPet());
+                    imgPetPick.setImageResource(R.drawable.xbdog7);
+                }else if (selectPosition == 1){
+                    petLayout.setPetAttr(new SquirrelPet());
+                    imgPetPick.setImageResource(R.drawable.squirrel26);
+                }
+                dialog_pet.cancel();
             }
         });
-    }
-
-    public List<Map<String, Object>> getPetData() {
-        for (int i = 0; i < pic_pet.length; i++) {
-            Map<String, Object> map = new HashMap<String, Object>();
-            map.put("image", pic_pet[i]);
-            list_pet.add(map);
-        }
-        return list_pet;
     }
 
     private AlarmManager alarmManager;
@@ -539,10 +549,12 @@ public class MainActivity extends BaseActivity {
         //启动服务
         startService(intent);
         if (petLayout == null) {
-            petLayout = new PetLayout(MainActivity.this);
-            initPetParams();
-            showPetWindow();
+            petLayout = PetLayout.getInstance(MainActivity.this);
         }
+        if (petParams == null){
+            initPetParams();
+        }
+        showPetWindow();
         petLayout.setPetAction(PetLayout.STUDY);
     }
 
@@ -642,7 +654,11 @@ public class MainActivity extends BaseActivity {
         Log.d(TAG, "弹窗位置:" + notifyParams.x + "  " + notifyParams.y);
         Log.d(TAG, "弹窗大小" + notifyLayout.getNotityWidth() + " * " + notifyLayout.getNotifyHeight());
         retrieveSystemWindowManager();
-        mWindowManager.addView(notifyLayout, notifyParams);
+        try {
+            mWindowManager.addView(notifyLayout, notifyParams);
+        }catch (IllegalStateException e){
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -711,7 +727,11 @@ public class MainActivity extends BaseActivity {
         });
 
         retrieveSystemWindowManager();
-        mWindowManager.addView(petLayout, petParams);
+        try {
+            mWindowManager.addView(petLayout, petParams);
+        }catch (IllegalStateException e){
+            e.printStackTrace();
+        }
     }
 
     public void closeWindowLayout(View view) {
@@ -812,6 +832,25 @@ public class MainActivity extends BaseActivity {
     }
 
     /**
+     * 判断桌面宠物是否可见
+     * @return
+     */
+    public boolean isPetVisiable(){
+        if (petLayout != null && petParams!= null){
+            try {
+                mWindowManager.addView(petLayout,petParams);
+                mWindowManager.removeView(petLayout);
+                return false;
+            }catch (IllegalStateException e){
+                e.printStackTrace();
+                return true;
+            }
+        }else {
+            return false;
+        }
+    }
+
+    /**
      * 设置悬浮窗弹出窗的可见性
      *
      * @param vis
@@ -829,17 +868,20 @@ public class MainActivity extends BaseActivity {
         }
         if (vis == View.GONE) {
             if (notifyLayout.getNotifyVisiable() == View.VISIBLE) {
-                mWindowManager.removeView(notifyLayout);
+                try {
+                    mWindowManager.removeView(notifyLayout);
+                }catch (IllegalStateException e){
+                    e.printStackTrace();
+                }
                 notifyLayout.setNotifyVisiable(View.GONE);
             }
         } else if (vis == View.VISIBLE) {
             Log.d(TAG, "设置对话框显示" + notifyLayout.getVisibility());
-            if (notifyLayout.getNotifyVisiable() == View.GONE) {
+            if (notifyLayout.getNotifyVisiable() == View.GONE && isPetVisiable()) {
                 notifyLayout.setNotifyVisiable(View.VISIBLE);
                 showNotifyWindow();
             }
         }
-
     }
 
     /**
