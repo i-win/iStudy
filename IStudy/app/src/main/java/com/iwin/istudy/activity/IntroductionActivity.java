@@ -34,14 +34,17 @@ public class IntroductionActivity extends AppCompatActivity {
         View view4 = View.inflate(this, R.layout.introduction_view4, null);
         View view5 = View.inflate(this, R.layout.introduction_view5, null);
         View view6 = View.inflate(this, R.layout.introduction_view6, null);
+        View view7 = View.inflate(this, R.layout.introduction_view7, null);
         viewList.add(view1);
         viewList.add(view2);
         viewList.add(view3);
         viewList.add(view4);
         viewList.add(view5);
         viewList.add(view6);
+        viewList.add(view7);
         //为ViewPager设置标题
         titlelist = new ArrayList<String>();
+        titlelist.add("。");
         titlelist.add("。");
         titlelist.add("。");
         titlelist.add("。");
@@ -57,7 +60,7 @@ public class IntroductionActivity extends AppCompatActivity {
         MyPagerAdapter adapter = new MyPagerAdapter(viewList, titlelist);
         //viewPager加载适配器
         pager.setAdapter(adapter);
-        TextView tvStartActivity = (TextView) view6.findViewById(R.id.tv_start_activity);
+        TextView tvStartActivity = (TextView) view7.findViewById(R.id.tv_start_activity);
         tvStartActivity.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
