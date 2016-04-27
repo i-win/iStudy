@@ -137,4 +137,7 @@ public class CountDownService extends Service {
     public void setCountStart(boolean enable) {
         isStartCount = enable;
     }
+    public boolean isCountStart(){
+        return isStartCount;
+    }
 }

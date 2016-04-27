@@ -20,7 +20,7 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
         Log.d(TAG,"闹钟广播接收到了");
         NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         Notification.Builder builder = new Notification.Builder(context);
-        builder.setSmallIcon(R.drawable.notification_icon);   //设置通知图标
+        builder.setSmallIcon(R.drawable.app_icon);   //设置通知图标
         builder.setTicker("IStudy有新的通知");   //手机状态栏的提示
         builder.setWhen(System.currentTimeMillis());   //设置通知的时间
         builder.setContentTitle("IStudy");      //设置通知的标题

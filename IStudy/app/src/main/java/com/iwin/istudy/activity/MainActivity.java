@@ -23,6 +23,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -103,6 +104,7 @@ public class MainActivity extends BaseActivity implements ViewAnimator.ViewAnima
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         SharedPreferences preferences = getSharedPreferences("background_main", MODE_PRIVATE);
         int backgroundMain = preferences.getInt("back",R.drawable.background_main1);
@@ -201,7 +203,7 @@ public class MainActivity extends BaseActivity implements ViewAnimator.ViewAnima
         btnStartCount.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!isZeroTime()) {
+                if (!isZeroTime() && !isSetedCountTime) {
                     stratMonitorService();
                     countServiceEnable();
                 }

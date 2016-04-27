@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.WindowManager;
 
 import com.iwin.istudy.R;
 
@@ -14,6 +15,7 @@ public class WelcomeActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
         handler.postDelayed(new Runnable() {  //使用handler的postDelayed实现延时跳转
             public void run() {
                 SharedPreferences preferences = getSharedPreferences("welcome", MODE_PRIVATE);  //当前程序才能读取
