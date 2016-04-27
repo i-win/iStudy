@@ -29,6 +29,11 @@ android {
     }
     productFlavors {
     }
+    repositories {
+        maven {
+            url "https://jitpack.io"
+        }
+    }
 }
 
 dependencies {
@@ -37,4 +42,5 @@ dependencies {
     compile 'com.android.support:appcompat-v7:23.2.1'
     compile 'pl.droidsonroids.gif:android-gif-drawable:1.1.15'
     compile 'com.kyleduo.switchbutton:library:1.4.0'
+    compile 'com.github.ozodrukh:CircularReveal:1.0.4'
 }

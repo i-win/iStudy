@@ -43,7 +43,7 @@
     <GridView
         android:id="@+id/gridview_pet"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="200dp"
         android:background="@drawable/background_pet_pick"
         android:listSelector="#a7e6fd"
         android:numColumns="2" />

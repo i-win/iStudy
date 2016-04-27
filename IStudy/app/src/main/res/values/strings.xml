@@ -49,4 +49,8 @@
         <item >zan~,应用解锁了，快去休息下吧</item>
         <item >byebye~俺先睡会，不要偷懒哦</item>
     </string-array>
+
+    <string name="drawer_open">Open</string>
+    <string name="drawer_close">Close</string>
+
 </resources>

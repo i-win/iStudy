@@ -8,12 +8,17 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
+import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -23,6 +28,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.AccelerateInterpolator;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -49,6 +55,11 @@ import com.iwin.istudy.service.CountDownService;
 import com.iwin.istudy.service.MonitorAppsService;
 import com.iwin.istudy.ui.NotifyLayout;
 import com.iwin.istudy.ui.PetLayout;
+import com.iwin.istudy.ui.SlideMenu.ContentFragment;
+import com.iwin.istudy.ui.SlideMenu.Resourceble;
+import com.iwin.istudy.ui.SlideMenu.ScreenShotable;
+import com.iwin.istudy.ui.SlideMenu.SlideMenuItem;
+import com.iwin.istudy.ui.SlideMenu.ViewAnimator;
 import com.iwin.istudy.ui.WheelView;
 import com.iwin.istudy.util.ScreenUtils;
 import com.kyleduo.switchbutton.SwitchButton;
@@ -61,9 +72,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import io.codetail.animation.SupportAnimator;
+import io.codetail.animation.ViewAnimationUtils;
 import pl.droidsonroids.gif.GifImageView;
 
-public class MainActivity extends BaseActivity {
+public class MainActivity extends BaseActivity implements ViewAnimator.ViewAnimatorListener {
     private static final String TAG = "MainActivity";
 
     private UpdateTimerReceiver updateTimerReceiver;
@@ -76,11 +89,40 @@ public class MainActivity extends BaseActivity {
     private NotifyLayout notifyLayout;
     private PetLayout petLayout;
 
+    private DrawerLayout drawerLayout;
+    private ActionBarDrawerToggle drawerToggle;
+    private List<SlideMenuItem> list = new ArrayList<>();
+    private ContentFragment contentFragment;
+    private ViewAnimator viewAnimator;
+    private int res;
+    private LinearLayout linearLayout;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        SharedPreferences preferences = getSharedPreferences("background_main", MODE_PRIVATE);
+        int backgroundMain = preferences.getInt("back",R.drawable.background_main1);
+        contentFragment = ContentFragment.newInstance(backgroundMain);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.content_frame, contentFragment)
+                .commit();
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawerLayout.setScrimColor(Color.TRANSPARENT);
+        linearLayout = (LinearLayout) findViewById(R.id.left_drawer);
+        linearLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                drawerLayout.closeDrawers();
+            }
+        });
+
+        setActionBar();
+        createMenuList();
+        viewAnimator = new ViewAnimator<>(this, list, contentFragment, drawerLayout, (ViewAnimator.ViewAnimatorListener) this);
 
         initView();
 
@@ -274,6 +316,7 @@ public class MainActivity extends BaseActivity {
     private Button btnPetCommit;
 
     int selectPosition;
+
     /**
      * 初始化设置宠物下拉框属性
      */
@@ -294,16 +337,16 @@ public class MainActivity extends BaseActivity {
         dialogPlanWindow.setAttributes(lp);
 
         swtbtn_pet = (SwitchButton) view_pet_pick.findViewById(R.id.swtbtn_pet);
-        swtbtn_pet.setThumbSize(40f,40f);
+        swtbtn_pet.setThumbSize(40f, 40f);
         swtbtn_pet.setChecked(isPetVisiable());
         swtbtn_pet.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    if (petLayout == null){
+                    if (petLayout == null) {
                         petLayout = PetLayout.getInstance(MainActivity.this);
                     }
-                    if (petParams == null){
+                    if (petParams == null) {
                         initPetParams();
                     }
                     showPetWindow();
@@ -314,12 +357,12 @@ public class MainActivity extends BaseActivity {
         });
         //设置弹窗数据
         gridView_pet = (GridView) dialog_pet.findViewById(R.id.gridview_pet);
-        final List<Map<String,Object>> petList = new ArrayList<>();
-        Map<String,Object> map = new HashMap<>();
-        map.put("image",R.drawable.xbdog1);
+        final List<Map<String, Object>> petList = new ArrayList<>();
+        Map<String, Object> map = new HashMap<>();
+        map.put("image", R.drawable.xbdog1);
         petList.add(map);
         map = new HashMap<>();
-        map.put("image",R.drawable.squirrel02);
+        map.put("image", R.drawable.squirrel02);
         petList.add(map);
         SimpleAdapter adapter_pet = new SimpleAdapter(this, petList,
                 R.layout.pet_pick, new String[]{"image"}, new int[]{R.id.image_pet});
@@ -339,13 +382,13 @@ public class MainActivity extends BaseActivity {
         btnPetCommit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (petLayout == null){
+                if (petLayout == null) {
                     petLayout = PetLayout.getInstance(MainActivity.this);
                 }
-                if (selectPosition == 0){
+                if (selectPosition == 0) {
                     petLayout.setPetAttr(new XbDogPet());
                     imgPetPick.setImageResource(R.drawable.xbdog7);
-                }else if (selectPosition == 1){
+                } else if (selectPosition == 1) {
                     petLayout.setPetAttr(new SquirrelPet());
                     imgPetPick.setImageResource(R.drawable.squirrel26);
                 }
@@ -551,7 +594,7 @@ public class MainActivity extends BaseActivity {
         if (petLayout == null) {
             petLayout = PetLayout.getInstance(MainActivity.this);
         }
-        if (petParams == null){
+        if (petParams == null) {
             initPetParams();
         }
         showPetWindow();
@@ -656,7 +699,7 @@ public class MainActivity extends BaseActivity {
         retrieveSystemWindowManager();
         try {
             mWindowManager.addView(notifyLayout, notifyParams);
-        }catch (IllegalStateException e){
+        } catch (IllegalStateException e) {
             e.printStackTrace();
         }
     }
@@ -729,7 +772,7 @@ public class MainActivity extends BaseActivity {
         retrieveSystemWindowManager();
         try {
             mWindowManager.addView(petLayout, petParams);
-        }catch (IllegalStateException e){
+        } catch (IllegalStateException e) {
             e.printStackTrace();
         }
     }
@@ -833,19 +876,20 @@ public class MainActivity extends BaseActivity {
 
     /**
      * 判断桌面宠物是否可见
+     *
      * @return
      */
-    public boolean isPetVisiable(){
-        if (petLayout != null && petParams!= null){
+    public boolean isPetVisiable() {
+        if (petLayout != null && petParams != null) {
             try {
-                mWindowManager.addView(petLayout,petParams);
+                mWindowManager.addView(petLayout, petParams);
                 mWindowManager.removeView(petLayout);
                 return false;
-            }catch (IllegalStateException e){
+            } catch (IllegalStateException e) {
                 e.printStackTrace();
                 return true;
             }
-        }else {
+        } else {
             return false;
         }
     }
@@ -870,7 +914,7 @@ public class MainActivity extends BaseActivity {
             if (notifyLayout.getNotifyVisiable() == View.VISIBLE) {
                 try {
                     mWindowManager.removeView(notifyLayout);
-                }catch (IllegalStateException e){
+                } catch (IllegalStateException e) {
                     e.printStackTrace();
                 }
                 notifyLayout.setNotifyVisiable(View.GONE);
@@ -958,5 +1002,118 @@ public class MainActivity extends BaseActivity {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         (getApplicationContext()).startActivity(intent);
         Log.d(TAG, "关闭应用:" + packageName);
+    }
+
+    /**
+     * 侧滑菜单
+     */
+    private void createMenuList() {
+        SlideMenuItem menuItem1 = new SlideMenuItem(ContentFragment.CLOSE, R.drawable.side_item1);
+        list.add(menuItem1);
+        SlideMenuItem menuItem2 = new SlideMenuItem(ContentFragment.BOOK, R.drawable.side_item2);
+        list.add(menuItem2);
+    }
+
+
+    private void setActionBar() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        drawerToggle = new ActionBarDrawerToggle(
+                this,                  /* host Activity */
+                drawerLayout,         /* DrawerLayout object */
+                toolbar,  /* nav drawer icon to replace 'Up' caret */
+                R.string.drawer_open,  /* "open drawer" description */
+                R.string.drawer_close  /* "close drawer" description */
+        ) {
+
+            /** Called when a drawer has settled in a completely closed state. */
+            public void onDrawerClosed(View view) {
+                super.onDrawerClosed(view);
+                linearLayout.removeAllViews();
+                linearLayout.invalidate();
+            }
+
+            @Override
+            public void onDrawerSlide(View drawerView, float slideOffset) {
+                super.onDrawerSlide(drawerView, slideOffset);
+                if (slideOffset > 0.6 && linearLayout.getChildCount() == 0)
+                    viewAnimator.showMenuContent();
+            }
+
+            /** Called when a drawer has settled in a completely open state. */
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+            }
+        };
+        drawerLayout.setDrawerListener(drawerToggle);
+    }
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        drawerToggle.syncState();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        drawerToggle.onConfigurationChanged(newConfig);
+    }
+
+
+    private ScreenShotable replaceFragment(ScreenShotable screenShotable, int topPosition) {
+        SharedPreferences preferences = getSharedPreferences("background_main", MODE_PRIVATE);
+        int backCurrent = preferences.getInt("back", R.drawable.background_main1);
+        if (backCurrent==R.drawable.background_main1){
+            this.res = this.res == R.drawable.background_main2 ? R.drawable.background_main1 : R.drawable.background_main2;
+        }else{
+            this.res = this.res == R.drawable.background_main1 ? R.drawable.background_main2 : R.drawable.background_main1;
+        }
+        SharedPreferences.Editor editorBack = preferences.edit();
+        editorBack.putInt("back",this.res);
+        editorBack.commit();
+
+        View view = findViewById(R.id.content_frame);
+        int finalRadius = Math.max(view.getWidth(), view.getHeight());
+        SupportAnimator animator = ViewAnimationUtils.createCircularReveal(view, 0, topPosition, 0, finalRadius);
+        animator.setInterpolator(new AccelerateInterpolator());
+        animator.setDuration(ViewAnimator.CIRCULAR_REVEAL_ANIMATION_DURATION);
+
+        findViewById(R.id.content_overlay).setBackgroundDrawable(new BitmapDrawable(getResources(), screenShotable.getBitmap()));
+        animator.start();
+        ContentFragment contentFragment = ContentFragment.newInstance(this.res);
+        getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, contentFragment).commit();
+        return contentFragment;
+    }
+
+
+    @Override
+    public ScreenShotable onSwitch(Resourceble slideMenuItem, ScreenShotable screenShotable, int position) {
+        switch (slideMenuItem.getName()) {
+            case ContentFragment.CLOSE:
+                return screenShotable;
+            default:
+                return replaceFragment(screenShotable, position);
+        }
+    }
+
+    @Override
+    public void disableHomeButton() {
+        getSupportActionBar().setHomeButtonEnabled(false);
+
+    }
+
+    @Override
+    public void enableHomeButton() {
+        getSupportActionBar().setHomeButtonEnabled(true);
+        drawerLayout.closeDrawers();
+
+    }
+
+    @Override
+    public void addViewToContainer(View view) {
+        linearLayout.addView(view);
     }
 }
