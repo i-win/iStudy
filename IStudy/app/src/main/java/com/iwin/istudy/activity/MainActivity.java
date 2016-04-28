@@ -104,8 +104,7 @@ public class MainActivity extends BaseActivity implements ViewAnimator.ViewAnima
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
+//        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
         SharedPreferences preferences = getSharedPreferences("background_main", MODE_PRIVATE);
         int backgroundMain = preferences.getInt("back",R.drawable.background_main1);
         contentFragment = ContentFragment.newInstance(backgroundMain);
