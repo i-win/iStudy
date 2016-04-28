@@ -4,7 +4,7 @@
 
 
 ##DownLoad  
-[istudy.apk](http://www.dasusu.cn/download/istudy_1.0.1.apk)  
+[istudy.apk](http://www.dasusu.cn/download/istudy_1.1.1.apk)  
 
 [iStudy网站介绍](http://www.dasusu.cn)  
 
@@ -25,4 +25,7 @@
    
 **增加：**  
 1.增加桌面宠物的种类以供选择
+
+###v1.1.1
+全面修改UI，修改风格
 
