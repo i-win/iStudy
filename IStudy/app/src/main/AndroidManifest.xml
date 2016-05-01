@@ -5,6 +5,10 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FLASHLIGHT" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
 
     <application
         android:allowBackup="true"
@@ -71,5 +75,8 @@
                 <action android:name="com.iwin.istudy.activity.MainActivity.alarmGoesOff" />
             </intent-filter>
         </receiver>
+
+        <meta-data android:value="57258a7867e58e1c890028ae" android:name="UMENG_APPKEY"/>
+        <meta-data android:value="dasusu" android:name="UMENG_CHANNEL"/>
     </application>
 </manifest>

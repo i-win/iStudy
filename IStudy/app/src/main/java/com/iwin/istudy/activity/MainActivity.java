@@ -64,6 +64,7 @@ import com.iwin.istudy.ui.SlideMenu.ViewAnimator;
 import com.iwin.istudy.ui.WheelView;
 import com.iwin.istudy.util.ScreenUtils;
 import com.kyleduo.switchbutton.SwitchButton;
+import com.umeng.analytics.MobclickAgent;
 
 import java.util.ArrayList;
 import java.util.Calendar;
