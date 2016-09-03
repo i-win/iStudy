@@ -2,11 +2,13 @@
 
 这是一款类似**我要当学霸**的学习监督功能的App,提供以倒计时形式禁止非系统App的使用，帮助你提高自觉性。同时，结合娱乐性的桌面宠物作为你的学习监督小管家，以便你在无聊时，在忍不住想玩手机时，可以让你解解馋，逗一逗小宠物。  
 
+#效果  
+![](./file/810210-20160508130514296-1478581597.gif)　![](./file/810210-20160508130713921-940781760.gif)
 
 ##DownLoad  
-[istudy.apk](http://www.dasusu.cn/download/istudy_1.1.1.apk)  
+[istudy.apk](./file/istudy_1_1_1.apk)  
 
-[iStudy网站介绍](http://www.dasusu.cn)  
+iStudy Blog分析: [戳这里]() [或这里](http://www.cnblogs.com/dasusu/p/5470635.html)  
 
 ##Update log  
 

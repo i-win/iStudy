@@ -25,6 +25,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.iwin
             zipAlignEnabled true
+            proguardFile 'E:/Github/iStudy/IStudy/app/proguard-rules.pro'
         }
     }
     productFlavors {

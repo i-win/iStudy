@@ -1,5 +1,6 @@
 package com.iwin.istudy.activity;
 
+import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.TimePickerDialog;
@@ -279,7 +280,6 @@ public class MainActivity extends BaseActivity implements ViewAnimator.ViewAnima
         builder.setView(view_dialog_plan);
         final AlertDialog dialog_plan = builder.create();  //创建一个dialog
         dialog_plan.show();
-
         Window dialogPlanWindow = dialog_plan.getWindow();
         dialogPlanWindow.setWindowAnimations(R.style.dialogPlanAnim);
         WindowManager.LayoutParams lp = dialogPlanWindow.getAttributes();
@@ -808,7 +808,6 @@ public class MainActivity extends BaseActivity implements ViewAnimator.ViewAnima
         }
         return super.onKeyDown(keyCode, event);
     }
-
 
     /**
      * 设置TextView 小时的值
